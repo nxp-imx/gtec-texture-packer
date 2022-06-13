@@ -1,0 +1,46 @@
+#!/usr/bin/env groovy
+pipeline
+{
+    agent
+    {
+        docker
+        {
+            label 'ubuntu'
+            image 'sigil/docker-net6:latest'
+        }
+    }
+    environment {
+        DOTNET_CLI_HOME = "Tools/TexturePacker"
+    }    
+    options
+    {
+      buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+    stages
+    {
+        stage('Build')
+        {
+            steps
+            {
+                dir('Tools/TexturePacker') {
+                    sh './BuildStandAloneLinux.sh'
+                }                
+                recordIssues(tools: [msBuild()])
+            }
+        }
+        stage('Test')
+        {
+            steps
+            {
+                echo 'make check'
+            }
+        }
+        stage('Deploy')
+        {
+            steps
+            {
+                echo 'make publish'
+            }
+        }
+    }
+}

@@ -1,0 +1,1 @@
+@%~dp0\bin-win-x64\TexturePacker.exe %*

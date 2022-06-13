@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TexturePacker xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="1">
+  <CreateAtlas Name="UIAtlas_160dpi" SourcePath="${ProjectRoot}/Resources/Source/BasicUI" OutputAtlasFormat="bta3" DefaultDpi="160">
+    <AddBitmapFont Path="Font/Sdf/Font.fnt" Type="sdf" OutputFontFormat="nbf"/>
+    <AddFolder Path="UIAtlas/160"/>
+  </CreateAtlas>
+  <CreateAtlas Name="SdfAtlas/FontAtlas" SourcePath="${ProjectRoot}/Resources/Source/BasicUI" OutputAtlasFormat="bta3" DefaultDpi="160">
+    <AddBitmapFont Path="Font/Sdf/Font.fnt" Type="sdf" OutputFontFormat="fbk,nbf"/>
+    <!--AddImage Path="UIAtlas/160/Fill.png"/-->
+  </CreateAtlas>
+  <CreateAtlas Name="NormalAtlas/FontAtlas" SourcePath="${ProjectRoot}/Resources/Source/BasicUI" OutputAtlasFormat="bta3" DefaultDpi="160">
+    <AddBitmapFont Path="Font/Normal/Font.fnt" Type="sdf" OutputFontFormat="fbk,nbf"/>
+  </CreateAtlas>
+</TexturePacker>

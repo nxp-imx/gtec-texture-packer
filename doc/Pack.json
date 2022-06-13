@@ -1,0 +1,15 @@
+{
+  "TexturePacker" : {
+    "Version": "1",
+    "Commands": [
+      {
+        "CreateAtlas": { "Name": "UIAtlas_160dpi", "SourcePath": "${ProjectRoot}/Resources/Source/BasicUI",
+          "Content": [
+            { "AddBitmapFont": { "Path": "Font-SDF/Font.fnt", "Type": "SDF" } },
+            { "AddFolder": { "Path": "UIAtlas/160" } }
+          ]
+        }
+      }
+    ]
+  }
+}
