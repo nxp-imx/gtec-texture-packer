@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 using MB.Base.MathEx.Pixel;
 using MB.RectangleBinPack.TexturePack;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
@@ -60,13 +61,11 @@ namespace TexturePacker.Config
     public static bool operator !=(AtlasTextureConfig lhs, AtlasTextureConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is AtlasTextureConfig) ? false : (this == (AtlasTextureConfig)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj)
+      => obj is AtlasTextureConfig objValue && (this == objValue);
 
 
-    public override int GetHashCode() => MaxSize.GetHashCode() ^ SizeRestriction.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(MaxSize, SizeRestriction);
 
 
     public bool Equals(AtlasTextureConfig other) => this == other;

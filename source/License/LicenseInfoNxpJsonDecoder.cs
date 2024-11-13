@@ -33,6 +33,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 
@@ -59,12 +60,18 @@ namespace TexturePacker.License
       }
     }
 
+    [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
     private static ComplexLicenseInfo Decode(string strJson)
     {
       if (strJson == null)
         throw new ArgumentNullException(nameof(strJson));
 
       var resultDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(strJson);
+      if (resultDict == null)
+      {
+        throw new NotSupportedException("license is not in a supported format");
+      }
+
       if (resultDict.ContainsKey(LicenseInfoNxpJsonValues.KeyComplexLicense))
       {
         return DecodeComplexLicense(resultDict);
@@ -75,7 +82,7 @@ namespace TexturePacker.License
     private static ComplexLicenseInfo DecodeComplexLicense(Dictionary<string, JsonElement> dict)
     {
       var complexElementDict = GetValueAsDict(dict, LicenseInfoNxpJsonValues.KeyComplexLicense);
-      var comment = GetValueAsString(complexElementDict, LicenseInfoNxpJsonValues.KeyComment, null);
+      string? comment = TryGetValueAsString(complexElementDict, LicenseInfoNxpJsonValues.KeyComment);
       var licensesArray = GetValueAsLicenseInfoNxpJsonArray(complexElementDict, LicenseInfoNxpJsonValues.KeyComplexLicenses);
 
       ValidateCheckKeys(dict, LicenseInfoNxpJsonValues.ValidComplexLicenseKeys);
@@ -85,10 +92,10 @@ namespace TexturePacker.License
 
     private static BasicLicenseInfo DecodeBasicLicense(Dictionary<string, JsonElement> dict)
     {
-      var origin = GetValueAsString(dict, LicenseInfoNxpJsonValues.KeyOrigin);
-      var license = GetValueAsString(dict, LicenseInfoNxpJsonValues.KeyLicense);
-      var url = GetValueAsString(dict, LicenseInfoNxpJsonValues.KeyUrl, null);
-      var comment = GetValueAsString(dict, LicenseInfoNxpJsonValues.KeyComment, null);
+      string origin = GetValueAsString(dict, LicenseInfoNxpJsonValues.KeyOrigin);
+      string license = GetValueAsString(dict, LicenseInfoNxpJsonValues.KeyLicense);
+      string? url = TryGetValueAsString(dict, LicenseInfoNxpJsonValues.KeyUrl);
+      string? comment = TryGetValueAsString(dict, LicenseInfoNxpJsonValues.KeyComment);
 
       ValidateCheckKeys(dict, LicenseInfoNxpJsonValues.ValidKeys);
 
@@ -161,7 +168,10 @@ namespace TexturePacker.License
         throw new Exception($"The key '{key}' was not found");
       if (valueElement.ValueKind != JsonValueKind.String)
         throw new Exception($"The value '{valueElement}' was not a string");
-      return valueElement.GetString();
+      var result = valueElement.GetString();
+      if (result == null)
+        throw new Exception("the value was null");
+      return result;
     }
 
     private static string GetValueAsString(Dictionary<string, JsonElement> dict, string key, string defaultValue)
@@ -170,8 +180,17 @@ namespace TexturePacker.License
         return defaultValue;
       if (valueElement.ValueKind != JsonValueKind.String)
         throw new Exception($"The value '{valueElement}' was not a string");
-      return valueElement.GetString();
+      var result = valueElement.GetString();
+      return result != null ? result : defaultValue;
     }
 
+    private static string? TryGetValueAsString(Dictionary<string, JsonElement> dict, string key)
+    {
+      if (!dict.TryGetValue(key, out JsonElement valueElement))
+        return null;
+      if (valueElement.ValueKind != JsonValueKind.String)
+        throw new Exception($"The value '{valueElement}' was not a string");
+      return valueElement.GetString();
+    }
   }
 }

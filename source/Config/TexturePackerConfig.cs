@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 using NLog;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
@@ -48,7 +49,7 @@ namespace TexturePacker.Config
     /// </summary>
     public readonly LicenseConfig License;
 
-    public TexturePackerConfig(string defaultCompany, string defaultNamespaceName, string defaultFilename, CreateAtlasConfig createAtlas, LicenseConfig license)
+    public TexturePackerConfig(string? defaultCompany, string? defaultNamespaceName, string defaultFilename, CreateAtlasConfig createAtlas, LicenseConfig license)
     {
       if (defaultCompany == null || defaultCompany.Length == 0)
       {
@@ -77,17 +78,18 @@ namespace TexturePacker.Config
     public static bool operator !=(TexturePackerConfig lhs, TexturePackerConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is TexturePackerConfig) ? false : (this == (TexturePackerConfig)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is TexturePackerConfig objValue && (this == objValue);
 
-
-    public override int GetHashCode() => CreateAtlas.GetHashCode() ^ License.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(CreateAtlas, License);
 
 
     public bool Equals(TexturePackerConfig other) => this == other;
 
     public override string ToString() => $"CreateAtlas: {CreateAtlas} License: {License}";
+
+    public static TexturePackerConfig PatchCreateAtlas(TexturePackerConfig src, CreateAtlasConfig createAtlas)
+    {
+      return new TexturePackerConfig(src.DefaultCompany, src.DefaultNamespaceName, src.DefaultFilename, createAtlas, src.License);
+    }
   }
 }

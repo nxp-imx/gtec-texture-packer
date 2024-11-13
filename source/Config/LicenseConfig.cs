@@ -30,18 +30,19 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
   public readonly struct LicenseConfig : IEquatable<LicenseConfig>
   {
     public readonly bool Enabled;
-    public readonly string Filename;
+    public readonly string? Filename;
     public readonly LicenseFormat LicenseFormat;
     public readonly bool AllowMasterFileCreation;
     public readonly bool RequiredForAllContent;
 
-    public LicenseConfig(string licenseFileName, LicenseFormat licenseFormat, bool allowMasterFileCreation, bool requiredForAllContent)
+    public LicenseConfig(string? licenseFileName, LicenseFormat licenseFormat, bool allowMasterFileCreation, bool requiredForAllContent)
     {
       ValidatePathEntry(licenseFileName);
       Enabled = licenseFileName != null;
@@ -51,7 +52,7 @@ namespace TexturePacker.Config
       RequiredForAllContent = requiredForAllContent;
     }
 
-    private static void ValidatePathEntry(string entry)
+    private static void ValidatePathEntry(string? entry)
     {
       if (entry == null)
         throw new ArgumentNullException(nameof(entry));
@@ -66,10 +67,7 @@ namespace TexturePacker.Config
     public static bool operator !=(LicenseConfig lhs, LicenseConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is LicenseConfig) ? false : (this == (LicenseConfig)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is LicenseConfig objValue && (this == objValue);
 
 
     public override int GetHashCode()

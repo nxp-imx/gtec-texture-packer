@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 using MB.Base.MathEx.Pixel;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,13 +114,7 @@ namespace FslGraphics.Font.AngleCode
       SpacingPx = spacingPx;
     }
 
-    public bool IsValid
-    {
-      get
-      {
-        return Face != null && Charset != null;
-      }
-    }
+    public bool IsValid => Face != null && Charset != null;
 
 
     public static bool operator ==(FontInfo lhs, FontInfo rhs)
@@ -129,36 +124,23 @@ namespace FslGraphics.Font.AngleCode
              lhs.PaddingPx == rhs.PaddingPx && lhs.SpacingPx == rhs.SpacingPx;
     }
 
-    public static bool operator !=(FontInfo lhs, FontInfo rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(FontInfo lhs, FontInfo rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is FontInfo) ? false : (this == (FontInfo)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is FontInfo objValue && (this == objValue);
 
 
     public override int GetHashCode()
-    {
-      return (Face != null ? Face.GetHashCode(StringComparison.Ordinal) : 0) ^ Size.GetHashCode() ^ Bold.GetHashCode() ^ Italic.GetHashCode() ^
-             (Charset != null ? Charset.GetHashCode(StringComparison.Ordinal) : 0) ^ Unicode.GetHashCode() ^ StretchH.GetHashCode() ^ Smooth.GetHashCode() ^
-             Aa.GetHashCode() ^ PaddingPx.GetHashCode() ^ SpacingPx.GetHashCode();
-    }
+      => (Face != null ? Face.GetHashCode(StringComparison.Ordinal) : 0) ^ Size.GetHashCode() ^ Bold.GetHashCode() ^ Italic.GetHashCode() ^
+         (Charset != null ? Charset.GetHashCode(StringComparison.Ordinal) : 0) ^ Unicode.GetHashCode() ^ StretchH.GetHashCode() ^ Smooth.GetHashCode() ^
+         Aa.GetHashCode() ^ PaddingPx.GetHashCode() ^ SpacingPx.GetHashCode();
 
 
-    public bool Equals(FontInfo other)
-    {
-      return this == other;
-    }
+    public bool Equals(FontInfo other) => this == other;
 
 
     public override string ToString()
-    {
-      return $"Face: {Face} Size: {Size} Bold: {Bold} Italic: {Italic} Charset: {Charset} Unicode: {Unicode} StretchH: {StretchH} Smooth: {Smooth} Aa: {Aa} PaddingPx: {PaddingPx} SpacingPx: {SpacingPx}";
-    }
+      => $"Face: {Face} Size: {Size} Bold: {Bold} Italic: {Italic} Charset: {Charset} Unicode: {Unicode} StretchH: {StretchH} Smooth: {Smooth} Aa: {Aa} PaddingPx: {PaddingPx} SpacingPx: {SpacingPx}";
   }
 
 }

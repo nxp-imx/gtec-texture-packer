@@ -31,13 +31,12 @@
 
 using MB.Base.MathEx.Pixel;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace FslGraphics.Font.Basic
 {
-  /// <summary>
-  /// </summary>
   public struct BasicFontHeader : IEquatable<BasicFontHeader>
   {
     /// <summary>
@@ -55,9 +54,6 @@ namespace FslGraphics.Font.Basic
     /// </summary>
     public int BaseLinePx;
 
-    /// <summary>
-    ///
-    /// </summary>
     public PxSize2D MaxGlyphLeadingOverdrawArea;
 
     public BasicFontHeader(string pathName, int lineSpacingPx, int baseLinePx, PxSize2D maxGlyphLeadingOverdrawArea)
@@ -75,21 +71,13 @@ namespace FslGraphics.Font.Basic
 
 
     public static bool operator ==(BasicFontHeader lhs, BasicFontHeader rhs)
-    {
-      return lhs.PathName == rhs.PathName && lhs.LineSpacingPx == rhs.LineSpacingPx && lhs.BaseLinePx == rhs.BaseLinePx &&
-             lhs.MaxGlyphLeadingOverdrawArea == rhs.MaxGlyphLeadingOverdrawArea;
-    }
+      => lhs.PathName == rhs.PathName && lhs.LineSpacingPx == rhs.LineSpacingPx && lhs.BaseLinePx == rhs.BaseLinePx &&
+         lhs.MaxGlyphLeadingOverdrawArea == rhs.MaxGlyphLeadingOverdrawArea;
 
-    public static bool operator !=(BasicFontHeader lhs, BasicFontHeader rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(BasicFontHeader lhs, BasicFontHeader rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is BasicFontHeader) ? false : (this == (BasicFontHeader)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is BasicFontHeader objValue && (this == objValue);
 
 
     public override int GetHashCode()
@@ -99,15 +87,9 @@ namespace FslGraphics.Font.Basic
     }
 
 
-    public bool Equals(BasicFontHeader other)
-    {
-      return this == other;
-    }
+    public bool Equals(BasicFontHeader other) => this == other;
 
-    public override string ToString()
-    {
-      return $"PathName: {PathName} LineSpacingPx: {LineSpacingPx} BaseLinePx: {BaseLinePx} MaxGlyphLeadingOverdrawArea: {MaxGlyphLeadingOverdrawArea}";
-    }
+    public override string ToString() => $"PathName: {PathName} LineSpacingPx: {LineSpacingPx} BaseLinePx: {BaseLinePx} MaxGlyphLeadingOverdrawArea: {MaxGlyphLeadingOverdrawArea}";
   }
 
 }

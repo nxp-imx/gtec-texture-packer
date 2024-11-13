@@ -57,5 +57,10 @@ namespace TexturePacker.Atlas
       if (charIndex < 0 || charIndex >= font.Chars.Length)
         throw new ArgumentOutOfRangeException(nameof(charIndex));
     }
+
+    public static AtlasBitmapFontElement PatchFont(AtlasBitmapFontElement src, BitmapFont replacementFont)
+    {
+      return new AtlasBitmapFontElement(src.SourcePath, src.SourceImage, src.SourceTrimInfo, src.Dpi, replacementFont, src.CharId, src.CharIndex);
+    }
   }
 }

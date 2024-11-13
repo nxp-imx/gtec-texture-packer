@@ -69,7 +69,8 @@ namespace TexturePacker.Input
       return value != null ? value : defaultValue;
     }
 
-    public static string TryGetAttributeValueAsString(XElement xmlElement, string attributeName)
+
+    public static string? TryGetAttributeValueAsString(XElement xmlElement, string attributeName)
     {
       if (xmlElement == null)
       {
@@ -144,9 +145,8 @@ namespace TexturePacker.Input
       }
 
       var result = TryGetAttributeValueAsString(xmlElement, attributeName);
-      bool found = result != null;
-      rResult = found ? UInt16.Parse(result, g_invariantCulture) : (UInt16)0u;
-      return found;
+      rResult = result != null ? UInt16.Parse(result, g_invariantCulture) : (UInt16)0u;
+      return result != null;
     }
 
     public static UInt32 GetAttributeValueAsUInt32(XElement xmlElement, string attributeName, UInt32 defaultValue)
@@ -167,10 +167,9 @@ namespace TexturePacker.Input
         throw new ArgumentNullException(nameof(xmlElement));
       }
 
-      var result = TryGetAttributeValueAsString(xmlElement, attributeName);
-      bool found = result != null;
-      rResult = found ? UInt32.Parse(result, g_invariantCulture) : 0u;
-      return found;
+      string? result = TryGetAttributeValueAsString(xmlElement, attributeName);
+      rResult = result != null ? UInt32.Parse(result, g_invariantCulture) : 0u;
+      return result != null;
     }
 
 
@@ -193,9 +192,8 @@ namespace TexturePacker.Input
       }
 
       var result = TryGetAttributeValueAsString(xmlElement, attributeName);
-      bool found = result != null;
-      rResult = found ? float.Parse(result, g_invariantCulture) : 0u;
-      return found;
+      rResult = result != null ? float.Parse(result, g_invariantCulture) : 0u;
+      return result != null;
     }
 
 
@@ -418,7 +416,7 @@ namespace TexturePacker.Input
     }
 
 
-    public static void ValidateAttributes(XElement xmlElement, string[] validAttributes, string ignoreNamespaceName = null)
+    public static void ValidateAttributes(XElement xmlElement, string[] validAttributes, string? ignoreNamespaceName = null)
     {
       if (xmlElement == null)
       {

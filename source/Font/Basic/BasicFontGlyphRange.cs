@@ -30,27 +30,17 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace FslGraphics.Font.Basic
 {
-  /// <summary>
-  /// </summary>
   public struct BasicFontGlyphRange : IEquatable<BasicFontGlyphRange>
   {
-    /// <summary>
-    /// </summary>
     public int From;
-
-    /// <summary>
-    /// </summary>
     public int Length;
-
-    /// <summary>
-    /// </summary>
     public int Offset;
-
 
     public BasicFontGlyphRange(int from, int length, int offset)
     {
@@ -66,41 +56,22 @@ namespace FslGraphics.Font.Basic
       Offset = offset;
     }
 
-
-
     public static bool operator ==(BasicFontGlyphRange lhs, BasicFontGlyphRange rhs)
-    {
-      return lhs.From == rhs.From && lhs.Length == rhs.Length && lhs.Offset == rhs.Offset;
-    }
+      => lhs.From == rhs.From && lhs.Length == rhs.Length && lhs.Offset == rhs.Offset;
 
-    public static bool operator !=(BasicFontGlyphRange lhs, BasicFontGlyphRange rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(BasicFontGlyphRange lhs, BasicFontGlyphRange rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is BasicFontGlyphRange) ? false : (this == (BasicFontGlyphRange)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is BasicFontGlyphRange objValue && (this == objValue);
 
 
-    public override int GetHashCode()
-    {
-      return From.GetHashCode() ^ Length.GetHashCode() ^ Offset.GetHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(From, Length, Offset);
 
 
-    public bool Equals(BasicFontGlyphRange other)
-    {
-      return this == other;
-    }
+    public bool Equals(BasicFontGlyphRange other) => this == other;
 
 
-    public override string ToString()
-    {
-      return $"From: {From} Length: {Length} Offset: {Offset}";
-    }
+    public override string ToString() => $"From: {From} Length: {Length} Offset: {Offset}";
   }
 
 }

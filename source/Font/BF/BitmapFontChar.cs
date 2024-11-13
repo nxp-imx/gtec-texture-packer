@@ -31,6 +31,7 @@
 
 using MB.Base.MathEx.Pixel;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,37 +71,19 @@ namespace FslGraphics.Font.BF
     }
 
     public static bool operator ==(BitmapFontChar lhs, BitmapFontChar rhs)
-    {
-      return lhs.Id == rhs.Id && lhs.SrcTextureRectPx == rhs.SrcTextureRectPx && lhs.OffsetPx == rhs.OffsetPx && lhs.XAdvancePx == rhs.XAdvancePx;
-    }
+      => lhs.Id == rhs.Id && lhs.SrcTextureRectPx == rhs.SrcTextureRectPx && lhs.OffsetPx == rhs.OffsetPx && lhs.XAdvancePx == rhs.XAdvancePx;
 
-    public static bool operator !=(BitmapFontChar lhs, BitmapFontChar rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(BitmapFontChar lhs, BitmapFontChar rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is BitmapFontChar) ? false : (this == (BitmapFontChar)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is BitmapFontChar objValue && (this == objValue);
 
 
-    public override int GetHashCode()
-    {
-      return Id.GetHashCode() ^ SrcTextureRectPx.GetHashCode() ^ OffsetPx.GetHashCode() ^ XAdvancePx.GetHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(Id, SrcTextureRectPx, OffsetPx, XAdvancePx);
 
+    public bool Equals(BitmapFontChar other) => this == other;
 
-    public bool Equals(BitmapFontChar other)
-    {
-      return this == other;
-    }
-
-    public override string ToString()
-    {
-      return $"Id: {Id} SrcTextureRectPx: {SrcTextureRectPx} OffsetPx: {OffsetPx} XAdvancePx: {XAdvancePx}";
-    }
+    public override string ToString() => $"Id: {Id} SrcTextureRectPx: {SrcTextureRectPx} OffsetPx: {OffsetPx} XAdvancePx: {XAdvancePx}";
   }
 
 }

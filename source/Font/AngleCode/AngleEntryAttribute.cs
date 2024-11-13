@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -46,30 +47,14 @@ namespace FslGraphics.Font.AngleCode
       Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    public bool IsValid
-    {
-      get
-      {
-        return Name != null && Value != null;
-      }
-    }
+    public bool IsValid => Name != null && Value != null;
 
-    public static bool operator ==(AngleEntryAttribute lhs, AngleEntryAttribute rhs)
-    {
-      return (lhs.Name == rhs.Name && lhs.Value == rhs.Value);
-    }
+    public static bool operator ==(AngleEntryAttribute lhs, AngleEntryAttribute rhs) => (lhs.Name == rhs.Name && lhs.Value == rhs.Value);
+
+    public static bool operator !=(AngleEntryAttribute lhs, AngleEntryAttribute rhs) => !(lhs == rhs);
 
 
-    public static bool operator !=(AngleEntryAttribute lhs, AngleEntryAttribute rhs)
-    {
-      return !(lhs == rhs);
-    }
-
-
-    public override bool Equals(object obj)
-    {
-      return !(obj is AngleEntryAttribute) ? false : (this == (AngleEntryAttribute)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? other) => other is AngleEntryAttribute valueOther && (this == valueOther);
 
 
     public override int GetHashCode()
@@ -78,15 +63,9 @@ namespace FslGraphics.Font.AngleCode
     }
 
 
-    public bool Equals(AngleEntryAttribute other)
-    {
-      return this == other;
-    }
+    public bool Equals(AngleEntryAttribute other) => this == other;
 
-    public override string ToString()
-    {
-      return $"Name: {Name} Value: {Value}";
-    }
+    public override string ToString() => $"Name: {Name} Value: {Value}";
   }
 
 }

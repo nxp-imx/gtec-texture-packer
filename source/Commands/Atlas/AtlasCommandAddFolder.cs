@@ -137,11 +137,11 @@ namespace TexturePacker.Commands.Atlas
           var resolvedAtlasPath = new ResolvedPath(filenameInfo.NormalizedName, resolvedPath.UnresolvedSourcePath, resolvedPath.ParentPath);
 
           { // Apply folder mods if any
-            string relativeEntryName = IOUtil.TryRemoveStartDirectoryName(resolvedAtlasPath.UnresolvedSourcePath, srcPath.UnresolvedSourcePath);
+            string? relativeEntryName = IOUtil.TryRemoveStartDirectoryName(resolvedAtlasPath.UnresolvedSourcePath, srcPath.UnresolvedSourcePath);
             if (relativeEntryName != null)
             {
               string relativeDirName = IOUtil.GetDirectoryName(relativeEntryName);
-              if (relativeDirName.Length > 0 && folderModDict.TryGetValue(relativeDirName, out FolderModRecord folderModRecord))
+              if (relativeDirName.Length > 0 && folderModDict.TryGetValue(relativeDirName, out FolderModRecord? folderModRecord))
               {
                 // Override element
                 elementConfig = folderModRecord.Mod.ElementConfig;
@@ -154,10 +154,10 @@ namespace TexturePacker.Commands.Atlas
             }
           }
 
-          AddNineSlice addNineSlice = null;
-          AddComplexPatch addComplexPatch = null;
-          AddAnchor addAnchor = null;
-          if (fileModDict.TryGetValue(relativeFilePath, out AtlasCommandAddFolderFileMod entryMod))
+          AddNineSlice? addNineSlice = null;
+          AddComplexPatch? addComplexPatch = null;
+          AddAnchor? addAnchor = null;
+          if (fileModDict.TryGetValue(relativeFilePath, out AtlasCommandAddFolderFileMod? entryMod))
           {
             fileModDict.Remove(relativeFilePath);
             // Override element

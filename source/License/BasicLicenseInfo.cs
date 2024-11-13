@@ -40,14 +40,14 @@ namespace TexturePacker.License
 
     public readonly string Origin;
     public readonly string License;
-    public readonly string Url;
-    public readonly string Comment;
+    public readonly string? Url;
+    public readonly string? Comment;
 
 
     //public readonly ImmutableArray<string> Files;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:Uri parameters should not be strings", Justification = "we want a string here")]
-    public BasicLicenseInfo(string origin, string license, string url, string comment)
+    public BasicLicenseInfo(string origin, string license, string? url, string? comment)
     {
       Origin = origin ?? throw new ArgumentNullException(nameof(origin));
       License = license ?? throw new ArgumentNullException(nameof(license));
@@ -73,7 +73,7 @@ namespace TexturePacker.License
         throw new NotSupportedException($"License '{License}' can not contain ';'");
     }
 
-    private static string TrimOptionalValue(string optionalValue)
+    private static string? TrimOptionalValue(string? optionalValue)
     {
       if (optionalValue == null)
         return null;

@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -84,42 +85,24 @@ namespace FslGraphics.Font.AngleCode
 
 
     public static bool operator ==(FontCommon lhs, FontCommon rhs)
-    {
-      return lhs.LineHeightPx == rhs.LineHeightPx && lhs.BaseLinePx == rhs.BaseLinePx && lhs.ScaleW == rhs.ScaleW && lhs.ScaleH == rhs.ScaleH &&
-             lhs.Pages == rhs.Pages && lhs.Packed == rhs.Packed;
-    }
+      => lhs.LineHeightPx == rhs.LineHeightPx && lhs.BaseLinePx == rhs.BaseLinePx && lhs.ScaleW == rhs.ScaleW && lhs.ScaleH == rhs.ScaleH &&
+         lhs.Pages == rhs.Pages && lhs.Packed == rhs.Packed;
 
-    public static bool operator !=(FontCommon lhs, FontCommon rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(FontCommon lhs, FontCommon rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is FontCommon) ? false : (this == (FontCommon)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is FontCommon objValue && (this == objValue);
 
 
-    public override int GetHashCode()
-    {
-      return LineHeightPx.GetHashCode() ^ BaseLinePx.GetHashCode() ^ ScaleW.GetHashCode() ^ ScaleH.GetHashCode() ^ Pages.GetHashCode() ^
-             Packed.GetHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(LineHeightPx, BaseLinePx, ScaleW, ScaleH, Pages, Packed);
 
 
-    public bool Equals(FontCommon other)
-    {
-      return this == other;
-    }
+    public bool Equals(FontCommon other) => this == other;
 
 
     public override string ToString()
-    {
-      return $"LineHeightPx: {LineHeightPx} BasePx: {BaseLinePx} ScaleW: {ScaleW} ScaleH: {ScaleH} Pages: {Pages} Packed: {Packed}";
-    }
+      => $"LineHeightPx: {LineHeightPx} BasePx: {BaseLinePx} ScaleW: {ScaleW} ScaleH: {ScaleH} Pages: {Pages} Packed: {Packed}";
   }
-
 }
 
 //****************************************************************************************************************************************************

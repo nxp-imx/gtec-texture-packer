@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
@@ -54,10 +55,10 @@ namespace TexturePacker.Config
     public static bool operator !=(AtlasConfig lhs, AtlasConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj) => !(obj is AtlasConfig) ? false : (this == (AtlasConfig)obj);
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is AtlasConfig objValue && (this == objValue);
 
 
-    public override int GetHashCode() => TransparencyMode.GetHashCode() ^ Texture.GetHashCode() ^ Layout.GetHashCode() ^ Element.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(TransparencyMode, Texture, Layout, Element);
 
 
     public bool Equals(AtlasConfig other) => this == other;

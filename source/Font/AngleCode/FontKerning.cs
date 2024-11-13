@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -42,16 +43,10 @@ namespace FslGraphics.Font.AngleCode
   /// </summary>
   public struct FontKerning : IEquatable<FontKerning>
   {
-    /// <summary>
-    /// </summary>
     public UInt32 First;
 
-    /// <summary>
-    /// </summary>
     public UInt32 Second;
 
-    /// <summary>
-    /// </summary>
     public Int32 AmountPx;
 
     public FontKerning(UInt32 first, UInt32 second, Int32 amount)
@@ -62,38 +57,20 @@ namespace FslGraphics.Font.AngleCode
     }
 
 
-    public static bool operator ==(FontKerning lhs, FontKerning rhs)
-    {
-      return lhs.First == rhs.First && lhs.Second == rhs.Second && lhs.AmountPx == rhs.AmountPx;
-    }
+    public static bool operator ==(FontKerning lhs, FontKerning rhs) => lhs.First == rhs.First && lhs.Second == rhs.Second && lhs.AmountPx == rhs.AmountPx;
 
-    public static bool operator !=(FontKerning lhs, FontKerning rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(FontKerning lhs, FontKerning rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is FontKerning) ? false : (this == (FontKerning)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is FontKerning objValue && (this == objValue);
 
 
-    public override int GetHashCode()
-    {
-      return First.GetHashCode() ^ Second.GetHashCode() ^ AmountPx.GetHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(First, Second, AmountPx);
 
 
-    public bool Equals(FontKerning other)
-    {
-      return this == other;
-    }
+    public bool Equals(FontKerning other) => this == other;
 
-    public override string ToString()
-    {
-      return $"First: {First} Second: {Second} Amount: {AmountPx}";
-    }
+    public override string ToString() => $"First: {First} Second: {Second} Amount: {AmountPx}";
   }
 
 }

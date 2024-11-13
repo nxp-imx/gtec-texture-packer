@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.License
 {
@@ -37,11 +38,11 @@ namespace TexturePacker.License
   {
     public readonly string Origin;
     public readonly string License;
-    public readonly string Url;
-    public readonly string Comment;
+    public readonly string? Url;
+    public readonly string? Comment;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:Uri parameters should not be strings", Justification = "Should match the raw file")]
-    public LicenseInfoNxpJson(string origin, string license, string url, string comment)
+    public LicenseInfoNxpJson(string origin, string license, string? url, string? comment)
     {
       Origin = origin ?? throw new ArgumentNullException(nameof(origin));
       License = license ?? throw new ArgumentNullException(nameof(license));
@@ -68,21 +69,13 @@ namespace TexturePacker.License
     }
 
     public static bool operator ==(LicenseInfoNxpJson lhs, LicenseInfoNxpJson rhs)
-    {
-      return lhs.Origin == rhs.Origin && lhs.License == rhs.License && lhs.Url == rhs.Url && lhs.Comment == rhs.Comment;
-    }
+      => lhs.Origin == rhs.Origin && lhs.License == rhs.License && lhs.Url == rhs.Url && lhs.Comment == rhs.Comment;
 
 
-    public static bool operator !=(LicenseInfoNxpJson lhs, LicenseInfoNxpJson rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(LicenseInfoNxpJson lhs, LicenseInfoNxpJson rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is LicenseInfoNxpJson) ? false : (this == (LicenseInfoNxpJson)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is LicenseInfoNxpJson objValue && (this == objValue);
 
 
     public override int GetHashCode()
@@ -92,14 +85,8 @@ namespace TexturePacker.License
     }
 
 
-    public bool Equals(LicenseInfoNxpJson other)
-    {
-      return this == other;
-    }
+    public bool Equals(LicenseInfoNxpJson other) => this == other;
 
-    public override string ToString()
-    {
-      return $"Origin: '{Origin}' License: '{License}' Url: '{Url}' Comment: '{Comment}'";
-    }
+    public override string ToString() => $"Origin: '{Origin}' License: '{License}' Url: '{Url}' Comment: '{Comment}'";
   }
 }

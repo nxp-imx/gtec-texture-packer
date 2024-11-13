@@ -160,7 +160,7 @@ namespace TexturePacker.Commands
           {
             scanSpan = scanSpan.Slice(1);
             var variableName = GetVariableName(scanSpan, '}').ToString();
-            if (!m_variables.TryGetValue(variableName, out string variableValue))
+            if (!m_variables.TryGetValue(variableName, out string? variableValue))
               throw new Exception($"Unknown variable {variableName}");
 
             scanSpan = scanSpan.Slice(variableName.Length + 1);
@@ -170,7 +170,7 @@ namespace TexturePacker.Commands
           {
             scanSpan = scanSpan.Slice(1);
             var variableName = GetVariableName(scanSpan, ')').ToString();
-            if (!m_envVariables.TryGetValue(variableName, out string variableValue))
+            if (!m_envVariables.TryGetValue(variableName, out string? variableValue))
               throw new Exception($"Unknown variable {variableName}");
 
             scanSpan = scanSpan.Slice(variableName.Length + 1);

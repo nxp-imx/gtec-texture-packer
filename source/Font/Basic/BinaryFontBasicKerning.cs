@@ -29,35 +29,21 @@
  *
  ****************************************************************************************************************************************************/
 
-using FslGraphics.Font.BF;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
-namespace TexturePacker.Config
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+namespace FslGraphics.Font.Basic
 {
-  public readonly struct AddBitmapFontConfig : IEquatable<AddBitmapFontConfig>
+  /// <summary>
+  /// </summary>
+  public class BinaryFontBasicKerning
   {
-    public readonly BitmapFontType FontType;
-    public readonly OutputFontFormat OutputFormat;
+    public const UInt32 HeaderMagic = 0x004B4246;
+    public static readonly string DefaultFileExtension = "fbk";
 
-    public AddBitmapFontConfig(BitmapFontType bitmapFontType, OutputFontFormat outputFormat)
-    {
-      FontType = bitmapFontType;
-      OutputFormat = outputFormat;
-    }
-
-    public static bool operator ==(AddBitmapFontConfig lhs, AddBitmapFontConfig rhs)
-      => lhs.FontType == rhs.FontType && lhs.OutputFormat == rhs.OutputFormat;
-
-    public static bool operator !=(AddBitmapFontConfig lhs, AddBitmapFontConfig rhs) => !(lhs == rhs);
-
-
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is AddBitmapFontConfig objValue && (this == objValue);
-
-    public override int GetHashCode() => HashCode.Combine(FontType, OutputFormat);
-
-    public bool Equals(AddBitmapFontConfig other) => this == other;
-
-    public override string ToString() => $"FontType: {FontType} OutputFormat: {OutputFormat}";
+    public string DefaultExtension => DefaultFileExtension;
   }
 }
+
+//****************************************************************************************************************************************************

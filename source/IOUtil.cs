@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,11 @@ namespace TexturePacker
       return path.Replace('\\', '/');
     }
 
+    public static string? TryNormalizePath(string? path)
+    {
+      return path != null ? NormalizePath(path) : null;
+    }
+
     public static bool PathStartsWithDir(string path, string dir)
     {
       Debug.Assert(!path.Contains('\\', StringComparison.Ordinal));
@@ -83,7 +88,7 @@ namespace TexturePacker
     public static void CreateFileDirectoryIfMissing(string filename)
     {
       var dstDirName = Path.GetDirectoryName(filename);
-      if (dstDirName.Length > 0)
+      if (dstDirName != null && dstDirName.Length > 0)
       {
         CreateDirectoryIfMissing(dstDirName);
       }
@@ -114,7 +119,7 @@ namespace TexturePacker
       }
     }
 
-    public static string TryRemoveStartDirectoryName(string path, string dirNameToRemove)
+    public static string? TryRemoveStartDirectoryName(string path, string dirNameToRemove)
     {
       if (path == dirNameToRemove)
         return string.Empty;
@@ -139,7 +144,7 @@ namespace TexturePacker
       if (content == null)
         throw new ArgumentNullException(nameof(content));
 
-      var existingContent = TryReadAllBytes(dstFilename);
+      byte[]? existingContent = TryReadAllBytes(dstFilename);
       if (!IsContentEqual(existingContent, content))
       {
         if (existingContent != null && overWritePolicy == OverWritePolicy.NotAllowed)
@@ -158,7 +163,7 @@ namespace TexturePacker
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All non parameter errors should cause null to be returned")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>")]
-    public static string TryReadAllText(string filename)
+    public static string? TryReadAllText(string filename)
     {
       if (filename == null)
         throw new ArgumentNullException(nameof(filename));
@@ -184,7 +189,7 @@ namespace TexturePacker
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All non parameter errors should cause null to be returned")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>")]
-    public static byte[] TryReadAllBytes(string filename)
+    public static byte[]? TryReadAllBytes(string filename)
     {
       if (filename == null)
         throw new ArgumentNullException(nameof(filename));
@@ -214,9 +219,17 @@ namespace TexturePacker
     }
 
 
+    public static string? TryGetDirectoryName(string path)
+    {
+      return TryNormalizePath(Path.GetDirectoryName(path));
+    }
+
     public static string GetDirectoryName(string path)
     {
-      return NormalizePath(Path.GetDirectoryName(path));
+      string? directoryName = TryNormalizePath(Path.GetDirectoryName(path));
+      if (directoryName == null)
+        throw new Exception($"'{path}' No directory name found");
+      return directoryName;
     }
 
     private static string SanitizeFilename(ref string rFilename)
@@ -237,7 +250,7 @@ namespace TexturePacker
       return true;
     }
 
-    public static bool IsContentEqual(byte[] lhs, byte[] rhs)
+    public static bool IsContentEqual(byte[]? lhs, byte[]? rhs)
     {
       if (lhs == null)
       {

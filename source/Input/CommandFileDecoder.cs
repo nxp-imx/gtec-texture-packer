@@ -50,11 +50,13 @@ namespace TexturePacker.Input
 
     private const string ElementTexturePacker = "TexturePacker";
 
+    private const string CmdAtlasConfig = "AtlasConfig";
     private const string CmdCreateAtlas = "CreateAtlas";
     private const string CmdAtlasFlavors = "AtlasFlavors";
 
     private static readonly string[] Cmds =
     {
+      CmdAtlasConfig,
       CmdCreateAtlas,
       CmdAtlasFlavors,
     };
@@ -268,20 +270,32 @@ namespace TexturePacker.Input
       var companyName = XmlUtil.GetAttributeValueAsString(element, TexturePackerAttribute_CompanyName, defaultConfig.DefaultCompany);
       var namespaceName = XmlUtil.GetAttributeValueAsString(element, TexturePackerAttribute_NamespaceName, defaultConfig.DefaultNamespaceName);
 
+      TexturePackerConfig currentConfig = defaultConfig;
       var commands = new List<Command>();
-      foreach (var decendant in element.Elements())
+      bool configAlreadyModified = false;
+      foreach (var descendant in element.Elements())
       {
-        if (decendant.Name == CmdCreateAtlas)
+        if (descendant.Name == CmdAtlasConfig)
         {
-          commands.Add(DecodeCreateAtlas(decendant, defaultConfig.CreateAtlas, atlasFileSourceDirectoryPath));
+          if (commands.Count > 0)
+            throw new Exception($"The '{CmdAtlasConfig}' must come before any other commands");
+          if (configAlreadyModified)
+            throw new Exception($"Only one '{CmdAtlasConfig}' cmd is allowed");
+          configAlreadyModified = true;
+          var newAtlasConfig = ConfigFileDecoder.DecodeAtlasConfig(descendant, currentConfig.CreateAtlas.Atlas, out bool modifiedTransparencyMode);
+          currentConfig = TexturePackerConfig.PatchCreateAtlas(currentConfig, CreateAtlasConfig.PatchAtlasConfig(currentConfig.CreateAtlas, newAtlasConfig));
         }
-        else if (decendant.Name == CmdAtlasFlavors)
+        else if (descendant.Name == CmdCreateAtlas)
         {
-          commands.Add(DecodeAtlasFlavors(decendant, defaultConfig, atlasFileSourceDirectoryPath));
+          commands.Add(DecodeCreateAtlas(descendant, currentConfig.CreateAtlas, atlasFileSourceDirectoryPath));
+        }
+        else if (descendant.Name == CmdAtlasFlavors)
+        {
+          commands.Add(DecodeAtlasFlavors(descendant, currentConfig, atlasFileSourceDirectoryPath));
         }
         else
         {
-          throw new NotSupportedException($"Unknown atlas command '{decendant.Name}'. Valid commands: '{string.Join(", ", Cmds)}'");
+          throw new NotSupportedException($"Unknown atlas command '{descendant.Name}'. Valid commands: '{string.Join(", ", Cmds)}'");
         }
       }
 
@@ -299,15 +313,15 @@ namespace TexturePacker.Input
       var name = XmlUtil.GetAttributeValueAsString(element, AtlasFlavorsAttribute_Name);
 
       var subCommands = new List<CommandCreateAtlas>();
-      foreach (var decendant in element.Elements())
+      foreach (var descendant in element.Elements())
       {
-        if (decendant.Name == CmdCreateAtlas)
+        if (descendant.Name == CmdCreateAtlas)
         {
-          subCommands.Add(DecodeCreateAtlas(decendant, defaultConfig.CreateAtlas, atlasFileSourceDirectoryPath));
+          subCommands.Add(DecodeCreateAtlas(descendant, defaultConfig.CreateAtlas, atlasFileSourceDirectoryPath));
         }
         else
         {
-          throw new NotSupportedException($"Unknown atlas command '{decendant.Name}'. Valid commands: '{string.Join(", ", AtlasFlavorCmds)}'");
+          throw new NotSupportedException($"Unknown atlas command '{descendant.Name}'. Valid commands: '{string.Join(", ", AtlasFlavorCmds)}'");
         }
       }
       return new CommandAtlasFlavors(name, subCommands);
@@ -342,10 +356,10 @@ namespace TexturePacker.Input
       }
 
       // patch the AtlasConfig
-      var ativeAtlasElement = new AtlasElementConfig(defaultDpi, defaultAtlasElement.Extrude, defaultAtlasElement.Trim, defaultAtlasElement.TrimMargin,
-                                                     defaultAtlasElement.TransparencyThreshold, defaultAtlasElement.ShapePadding,
-                                                     defaultAtlasElement.BorderPadding);
-      var activeDefaultAtlasConfig = new AtlasConfig(defaultConfig.Atlas.TransparencyMode, defaultConfig.Atlas.Texture, defaultConfig.Atlas.Layout, ativeAtlasElement);
+      var activeAtlasElement = new AtlasElementConfig(defaultDpi, defaultAtlasElement.Extrude, defaultAtlasElement.Trim, defaultAtlasElement.TrimMargin,
+                                                      defaultAtlasElement.TransparencyThreshold, defaultAtlasElement.ShapePadding,
+                                                      defaultAtlasElement.BorderPadding);
+      var activeDefaultAtlasConfig = new AtlasConfig(defaultConfig.Atlas.TransparencyMode, defaultConfig.Atlas.Texture, defaultConfig.Atlas.Layout, activeAtlasElement);
       var activeConfig = new CreateAtlasConfig(outputAtlasFormat, activeDefaultAtlasConfig, defaultConfig.AddBitmapFont);
       var (atlasConfig, modifiedTransparencyMode, atlasCommands) = ParseAtlasChildren(element, activeConfig);
 
@@ -422,8 +436,8 @@ namespace TexturePacker.Input
       XmlUtil.ValidateAttributes(element, AddBitmapFontAttributes);
       var elementConfig = ParseAtlasCommandAddBitmapFontChildren(element, defaultElementConfig);
 
-      var path = XmlUtil.GetAttributeValueAsString(element, AddBitmapFontAttribute_Path);
-      var name = XmlUtil.GetAttributeValueAsString(element, AddBitmapFontAttribute_Name, null);
+      string path = XmlUtil.GetAttributeValueAsString(element, AddBitmapFontAttribute_Path);
+      string? name = XmlUtil.TryGetAttributeValueAsString(element, AddBitmapFontAttribute_Name);
       var fontType = XmlUtil.GetAttributeValueAsBitmapFontType(element, AddBitmapFontAttribute_Type, defaultConfig.FontType);
       var outputFontFormats = XmlUtil.GetAttributeValueAsOutputFontFormatHashSet(element, AddBitmapFontAttribute_OutputFontFormat, defaultConfig.OutputFormat);
 
@@ -432,7 +446,7 @@ namespace TexturePacker.Input
       UInt32 measureCharId = Convert.ToUInt32(XmlUtil.GetAttributeValueAsChar(element, AddBitmapFontAttribute_MeasureChar, (char)0));
       UInt16 measureHeightPx = XmlUtil.GetAttributeValueAsUInt16(element, AddBitmapFontAttribute_MeasureHeight, 0);
 
-      BitmapFontSdfConfig sdfConfig = null;
+      BitmapFontSdfConfig? sdfConfig = null;
       if (fontType == FslGraphics.Font.BF.BitmapFontType.SDF)
       {
         UInt16 sdfSpread;
@@ -548,7 +562,7 @@ namespace TexturePacker.Input
       Debug.Assert(element.Name == AddFolderChildMod);
       XmlUtil.ValidateAttributes(element, AddFolderModAttributes);
 
-      string path = XmlUtil.TryGetAttributeValueAsString(element, AddFolderMod_Path);
+      string path = XmlUtil.GetAttributeValueAsString(element, AddFolderMod_Path);
 
       bool isFirstElement = true;
       foreach (var decendant in element.Elements())
@@ -574,12 +588,12 @@ namespace TexturePacker.Input
       Debug.Assert(element.Name == AddFolderChildFileMod);
       XmlUtil.ValidateAttributes(element, AddFolderFileModAttributes);
 
-      string path = XmlUtil.TryGetAttributeValueAsString(element, AddFolderFileMode_Path);
+      string path = XmlUtil.GetAttributeValueAsString(element, AddFolderFileMode_Path);
 
       bool isFirstElement = true;
-      AddNineSlice nineSlice = null;
-      AddComplexPatch complexPatch = null;
-      AddAnchor anchor = null;
+      AddNineSlice? nineSlice = null;
+      AddComplexPatch? complexPatch = null;
+      AddAnchor? anchor = null;
 
       foreach (var decendant in element.Elements())
       {
@@ -648,7 +662,7 @@ namespace TexturePacker.Input
     }
 
 
-    private static AddAnchor ParseAddAnchor(XElement element)
+    private static AddAnchor? ParseAddAnchor(XElement element)
     {
       Debug.Assert(element.Name == AtlasCmdAddAnchor);
       XmlUtil.ValidateAttributes(element, AddFolderEntryAddAnchorAttributes);
@@ -659,12 +673,12 @@ namespace TexturePacker.Input
     }
 
 
-    private static Tuple<AtlasElementConfig, AddNineSlice, AddComplexPatch, AddAnchor> ParseAtlasCommandAddImageChildren(XElement element, AtlasElementConfig elementConfig)
+    private static Tuple<AtlasElementConfig, AddNineSlice?, AddComplexPatch?, AddAnchor?> ParseAtlasCommandAddImageChildren(XElement element, AtlasElementConfig elementConfig)
     {
       bool isFirstElement = true;
-      AddNineSlice nineSlice = null;
-      AddComplexPatch complexPatch = null;
-      AddAnchor anchor = null;
+      AddNineSlice? nineSlice = null;
+      AddComplexPatch? complexPatch = null;
+      AddAnchor? anchor = null;
       foreach (var decendant in element.Elements())
       {
         if (decendant.Name == ConfigFileDecoder.ElementAtlasElementConfig)

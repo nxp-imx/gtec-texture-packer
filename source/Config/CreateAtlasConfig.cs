@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
@@ -68,16 +69,18 @@ namespace TexturePacker.Config
     public static bool operator !=(CreateAtlasConfig lhs, CreateAtlasConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is CreateAtlasConfig) ? false : (this == (CreateAtlasConfig)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is CreateAtlasConfig objValue && (this == objValue);
 
 
-    public override int GetHashCode() => OutputFormat.GetHashCode() ^ Atlas.GetHashCode() ^ AddBitmapFont.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(OutputFormat, Atlas, AddBitmapFont);
 
 
     public bool Equals(CreateAtlasConfig other) => this == other;
+
+    public static CreateAtlasConfig PatchAtlasConfig(CreateAtlasConfig src, AtlasConfig newAtlasConfig)
+    {
+      return new CreateAtlasConfig(src.OutputFormat, newAtlasConfig, src.AddBitmapFont);
+    }
 
     //public override string ToString()
     //{

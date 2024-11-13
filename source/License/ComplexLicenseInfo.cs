@@ -29,7 +29,6 @@
  *
  ****************************************************************************************************************************************************/
 
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,19 +40,19 @@ namespace TexturePacker.License
     //private static readonly Logger g_logger = LogManager.GetCurrentClassLogger();
 
     public readonly ImmutableArray<BasicLicenseInfo> Licenses;
-    public readonly string Comment;
+    public readonly string? Comment;
 
-    public ComplexLicenseInfo(BasicLicenseInfo basicLisence, string comment)
+    public ComplexLicenseInfo(BasicLicenseInfo basicLisence, string? comment)
       : this(ImmutableArray.Create(basicLisence), comment)
     {
     }
 
-    public ComplexLicenseInfo(BasicLicenseInfo[] licenses, string comment)
+    public ComplexLicenseInfo(BasicLicenseInfo[] licenses, string? comment)
       : this(ImmutableArray.Create(licenses), comment)
     {
     }
 
-    public ComplexLicenseInfo(ImmutableArray<BasicLicenseInfo> licenses, string comment)
+    public ComplexLicenseInfo(ImmutableArray<BasicLicenseInfo> licenses, string? comment)
       : base(LicenseFormat.NxpJson, true)
     {
       ValidateLicenses(licenses);
@@ -77,7 +76,7 @@ namespace TexturePacker.License
       if (rhs == null)
         throw new Exception("Other must be a ComplexLicenseInfo");
 
-      string mergedComment = MergeComment(Comment, rhs.Comment);
+      string? mergedComment = MergeComment(Comment, rhs.Comment);
       var mergedLicenses = new List<BasicLicenseInfo>(Licenses.Length + rhs.Licenses.Length);
       for (int i = 0; i < Licenses.Length; ++i)
         mergedLicenses.Add(Licenses[i]);
@@ -100,7 +99,7 @@ namespace TexturePacker.License
       return false;
     }
 
-    private static string MergeComment(string comment1, string comment2)
+    private static string? MergeComment(string? comment1, string? comment2)
     {
       if (comment1 == null)
         return comment2;
@@ -136,7 +135,5 @@ namespace TexturePacker.License
     {
       return licenses.Sort((lhs, rhs) => { return BasicLicenseInfo.Compare(lhs, rhs); });
     }
-
-
   }
 }

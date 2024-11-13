@@ -59,7 +59,7 @@ namespace TexturePacker
     //private static readonly Logger g_logger = LogManager.GetCurrentClassLogger();
 
     private bool m_isDisposed;
-    private Image<Rgba32> m_image;
+    private Image<Rgba32>? m_image;
     public readonly PxSize2D Size;
 
     private static readonly Rgba32 PatchFillColor = new Rgba32(0, 0, 0, 255);
@@ -142,7 +142,7 @@ namespace TexturePacker
       return m_image != null ? CalcTrimmedImageRect(m_image, alpahThreshold, trimMargin) : new PxRectangle();
     }
 
-    public AtlasElementPatchInfo TryProcessPatchInfo()
+    public AtlasElementPatchInfo? TryProcessPatchInfo()
     {
       if (m_isDisposed)
         throw new ObjectDisposedException(nameof(SafeImage));
@@ -157,7 +157,7 @@ namespace TexturePacker
     /// <summary>
     /// Draw the given image to this image
     /// </summary>
-    /// <param name="location"></param>
+    /// <param name="dstPositionPx"></param>
     /// <param name="srcImage"></param>
     public void DrawImage(PxPoint2 dstPositionPx, SafeImage srcImage)
     {
@@ -197,7 +197,7 @@ namespace TexturePacker
     {
       if (extrude < 0)
         throw new ArgumentException($"{nameof(extrude)} must be positive");
-      if (extrude > m_image.Width && extrude > m_image.Height)
+      if (m_image == null || extrude > m_image.Width || extrude > m_image.Height)
         throw new ArgumentException($"{nameof(extrude)} must fit inside the image");
       if (!(rectanglePx.Left >= extrude && rectanglePx.Right <= (m_image.Width - extrude) && rectanglePx.Top >= extrude && rectanglePx.Bottom <= (m_image.Height - extrude)))
       {
@@ -279,6 +279,8 @@ namespace TexturePacker
     {
       if (m_isDisposed)
         throw new ObjectDisposedException(nameof(SafeImage));
+      if (m_image == null)
+        return;
 
       //var memoryGroup = m_image.GetPixelMemoryGroup<Rgba32>();
       //for (int memIndex = 0; memIndex < memoryGroup.Count; ++memIndex)
@@ -297,6 +299,97 @@ namespace TexturePacker
       }
     }
 
+    public void PremultiplyUsingLinearColors()
+    {
+      if (m_isDisposed)
+        throw new ObjectDisposedException(nameof(SafeImage));
+      if (m_image == null)
+        return;
+
+      //var memoryGroup = m_image.GetPixelMemoryGroup<Rgba32>();
+      //for (int memIndex = 0; memIndex < memoryGroup.Count; ++memIndex)
+      //{
+      //var span = memoryGroup[memIndex].Span;
+
+      var span = m_image.GetLegacyPixelSpan();
+      for (int i = 0; i < span.Length; ++i)
+      {
+        var entry = span[i];
+        float linearR = ConvertSRGBToLinearFloat(entry.R);
+        float linearG = ConvertSRGBToLinearFloat(entry.G);
+        float linearB = ConvertSRGBToLinearFloat(entry.B);
+        float linearA = entry.A / 255.0f;
+        byte r = ConvertLinearToSRGBUInt8(linearR * linearA);
+        byte g = ConvertLinearToSRGBUInt8(linearG * linearA);
+        byte b = ConvertLinearToSRGBUInt8(linearB * linearA);
+        byte a = entry.A;
+        span[i] = new Rgba32(r, g, b, a);
+      }
+    }
+
+
+    /// <summary>
+    /// Conversion based on http://entropymine.com/imageworsener/srgbformula/
+    /// </summary>
+    /// <param name="valueSRGB"></param>
+    /// <returns></returns>
+    private static float ConvertSRGBToLinearFloat(float valueSRGB)
+    {
+      if (valueSRGB <= 0.0f)
+      {
+        return 0.0f;
+      }
+      if (valueSRGB < 0.04045f)
+      {
+        return valueSRGB / 12.92f;
+      }
+      if (valueSRGB >= 1.0f)
+      {
+        return 1.0f;
+      }
+      return (float)Math.Pow((valueSRGB + 0.055f) / 1.055f, 2.4f);
+    }
+
+    private static float ConvertLinearToSRGBFloat(float valueLinear)
+    {
+      if (valueLinear <= 0.0f)
+      {
+        return 0.0f;
+      }
+      if (valueLinear < 0.0031308f)
+      {
+        return valueLinear * 12.92f;
+      }
+      if (valueLinear >= 1.0f)
+      {
+        return 1.0f;
+      }
+      return (((float)Math.Pow(valueLinear, 1.0f / 2.4f)) * 1.055f) - 0.055f;
+    }
+
+    /// <summary>
+    /// Convert a single uint8_t value from SRGB to linear colorspace
+    /// </summary>
+    /// <param name="valueSRGB"></param>
+    /// <returns></returns>
+    private static float ConvertSRGBToLinearFloat(byte valueSRGB)
+    {
+      return ConvertSRGBToLinearFloat(valueSRGB / 255.0f);
+    }
+
+    /// <summary>
+    /// Convert a single float value from linear to SRGB colorspace encoded as a uint8_t
+    /// </summary>
+    /// <param name="valueLinear"></param>
+    /// <returns></returns>
+    private static byte ConvertLinearToSRGBUInt8(float valueLinear)
+    {
+      float colorSRGB = ConvertLinearToSRGBFloat(valueLinear);
+      float expandedSRGBValue = MathUtil.RoundToFloat(colorSRGB * byte.MaxValue);
+      Debug.Assert(expandedSRGBValue >= 0.0f);
+      UInt32 convertedSRGBValue = (UInt32)expandedSRGBValue;
+      return convertedSRGBValue <= byte.MaxValue ? (byte)convertedSRGBValue : byte.MaxValue;
+    }
 
     public byte[] ToByteArray()
     {
@@ -404,25 +497,31 @@ namespace TexturePacker
 
     public bool IsOpaque(in PxRectangle srcRectPx)
     {
+      bool result = true;
       if (m_image != null)
       {
         int left = srcRectPx.Left;
         int top = srcRectPx.Top;
         int bottom = srcRectPx.Bottom;
         int right = srcRectPx.Right;
-        for (int y = top; y < bottom; ++y)
+
+        m_image.ProcessPixelRows(pixelAccessor =>
         {
-          Span<Rgba32> row = m_image.GetPixelRowSpan(y);
-          for (int x = left; x < right; ++x)
+          for (int y = top; y < bottom; ++y)
           {
-            if (row[x].A != 0xFF)
+            Span<Rgba32> row = pixelAccessor.GetRowSpan(y);
+            for (int x = left; x < right; ++x)
             {
-              return false;
+              if (row[x].A != 0xFF)
+              {
+                result = false;
+                return;
+              }
             }
           }
-        }
+        });
       }
-      return true;
+      return result;
     }
 
     private static int IndexOfFirstNonTransparentColumn(Image<Rgba32> image, int alpahThreshold, int startIndex = 0)
@@ -475,12 +574,19 @@ namespace TexturePacker
       Debug.Assert(startIndex >= 0);
       Debug.Assert(startIndex <= image.Height);
 
-      for (int y = startIndex; y < image.Height; ++y)
+      int result = -1;
+      image.ProcessPixelRows(pixelAccessor =>
       {
-        if (!IsRowTransparent(image.GetPixelRowSpan(y), alpahThreshold))
-          return y;
-      }
-      return -1;
+        for (int y = startIndex; y < image.Height; ++y)
+        {
+          if (!IsRowTransparent(pixelAccessor.GetRowSpan(y), alpahThreshold))
+          {
+            result = y;
+            return;
+          }
+        }
+      });
+      return result;
     }
 
     private static int LastIndexOfFirstNonTransparentRow(Image<Rgba32> image, int alpahThreshold)
@@ -497,12 +603,19 @@ namespace TexturePacker
       Debug.Assert(startIndex >= 0);
       Debug.Assert(startIndex <= image.Height);
 
-      for (int y = startIndex; y >= 0; --y)
+      int result = -1;
+      image.ProcessPixelRows(pixelAccessor =>
       {
-        if (!IsRowTransparent(image.GetPixelRowSpan(y), alpahThreshold))
-          return y;
-      }
-      return -1;
+        for (int y = startIndex; y >= 0; --y)
+        {
+          if (!IsRowTransparent(pixelAccessor.GetRowSpan(y), alpahThreshold))
+          {
+            result = y;
+            return;
+          }
+        }
+      });
+      return result;
     }
 
     private static PxRectangle CalcTrimmedImageRect(Image<Rgba32> image, int alpahThreshold, int trimMargin)
@@ -542,29 +655,34 @@ namespace TexturePacker
     {
       Debug.Assert(image.Width >= 3 && image.Height >= 3);
 
-      var topSpan = image.GetPixelRowSpan(0);
-      var bottomSpan = image.GetPixelRowSpan(image.Height - 1);
-      topSpan = topSpan.Slice(1, topSpan.Length - 2);
-      bottomSpan = bottomSpan.Slice(1, bottomSpan.Length - 2);
+      ImmutableComplexPatch patch = default;
+      image.ProcessPixelRows(pixelAccessor =>
+      {
+        var topSpan = pixelAccessor.GetRowSpan(0);
+        var bottomSpan = pixelAccessor.GetRowSpan(image.Height - 1);
+        topSpan = topSpan.Slice(1, topSpan.Length - 2);
+        bottomSpan = bottomSpan.Slice(1, bottomSpan.Length - 2);
 
-      var scaleSpansX = FindFilledPixelSpans(topSpan);
-      var contentSpanX = FindFilledPixelSpans(bottomSpan);
+        var scaleSpansX = FindFilledPixelSpans(topSpan);
+        var contentSpanX = FindFilledPixelSpans(bottomSpan);
 
-      Span<Rgba32> fullImageSpan = image.GetLegacyPixelSpan();
-      int spanStride = image.Width;
-      var scaleSpansY = FindFilledPixelRowSpans(fullImageSpan, 0, 1, image.Height - 1, spanStride);
-      var contentSpanY = FindFilledPixelRowSpans(fullImageSpan, image.Width - 1, 1, image.Height - 1, spanStride);
+        Span<Rgba32> fullImageSpan = image.GetLegacyPixelSpan();
+        int spanStride = image.Width;
+        var scaleSpansY = FindFilledPixelRowSpans(fullImageSpan, 0, 1, image.Height - 1, spanStride);
+        var contentSpanY = FindFilledPixelRowSpans(fullImageSpan, image.Width - 1, 1, image.Height - 1, spanStride);
 
-      UInt32 imageWidth = UncheckedNumericCast.ToUInt32(image.Width - 2);
-      UInt32 imageHeight = UncheckedNumericCast.ToUInt32(image.Height - 2);
-      PxSize2D sizePx = PxUncheckedTypeConverter.ToPxSize2D(new PxExtent2D(imageWidth, imageHeight));
-      ImmutableComplexPatch patch = ImmutablePatchHelper.CreateTransparentComplexPatch(scaleSpansX, scaleSpansY, contentSpanX, contentSpanY, sizePx);
-      Debug.Assert(contentSpanX.Count < 1 || contentSpanX[contentSpanX.Count - 1].End <= sizePx.Width);
-      Debug.Assert(contentSpanY.Count < 1 || contentSpanY[contentSpanY.Count - 1].End <= sizePx.Height);
-      Debug.Assert(patch.ContentSpans.CountX == contentSpanX.Count);
-      Debug.Assert(patch.ContentSpans.CountY == contentSpanY.Count);
-      Debug.Assert(patch.ContentSpans.CountX < 1 || patch.ContentSpans.AsSpanX()[patch.ContentSpans.CountX - 1].End <= sizePx.Width);
-      Debug.Assert(patch.ContentSpans.CountY < 1 || patch.ContentSpans.AsSpanY()[patch.ContentSpans.CountY - 1].End <= sizePx.Height);
+        UInt32 imageWidth = UncheckedNumericCast.ToUInt32(image.Width - 2);
+        UInt32 imageHeight = UncheckedNumericCast.ToUInt32(image.Height - 2);
+        PxSize2D sizePx = PxUncheckedTypeConverter.ToPxSize2D(new PxExtent2D(imageWidth, imageHeight));
+        patch = ImmutablePatchHelper.CreateTransparentComplexPatch(scaleSpansX, scaleSpansY, contentSpanX, contentSpanY, sizePx);
+        Debug.Assert(contentSpanX.Count < 1 || contentSpanX[contentSpanX.Count - 1].End <= sizePx.Width);
+        Debug.Assert(contentSpanY.Count < 1 || contentSpanY[contentSpanY.Count - 1].End <= sizePx.Height);
+        Debug.Assert(patch.ContentSpans.CountX == contentSpanX.Count);
+        Debug.Assert(patch.ContentSpans.CountY == contentSpanY.Count);
+        Debug.Assert(patch.ContentSpans.CountX < 1 || patch.ContentSpans.AsSpanX()[patch.ContentSpans.CountX - 1].End <= sizePx.Width);
+        Debug.Assert(patch.ContentSpans.CountY < 1 || patch.ContentSpans.AsSpanY()[patch.ContentSpans.CountY - 1].End <= sizePx.Height);
+      });
+
       return new AtlasElementPatchInfo(patch, true, false);
     }
 
@@ -640,7 +758,6 @@ namespace TexturePacker
       if (image == null)
         throw new ArgumentNullException(nameof(image));
 
-      //return image.GetPixelSpan<Rgba32>();
       var memoryGroup = image.GetPixelMemoryGroup<Rgba32>();
       if (memoryGroup.Count != 1)
         throw new NotSupportedException("we expect one memory group");

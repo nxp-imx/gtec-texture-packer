@@ -54,20 +54,20 @@ namespace TexturePacker.Commands
     public readonly string SmartName;
     public readonly string SourcePath;
     public readonly string DstPath;
-    public readonly string LicenseFile;
+    public readonly string? LicenseFile;
     public readonly AtlasConfig Config;
 
     public readonly ImmutableArray<AtlasCommand> Commands;
 
     public readonly OutputAtlasFormat OutputFormat;
 
-    public CommandCreateAtlas(string atlasFileSourceDirectoryPath, string name, string sourcePath, string licenseFile, AtlasConfig atlasConfig,
+    public CommandCreateAtlas(string atlasFileSourceDirectoryPath, string name, string sourcePath, string? licenseFile, AtlasConfig atlasConfig,
                               AtlasCommand[] commands, OutputAtlasFormat outputAtlasFormat)
       : this(atlasFileSourceDirectoryPath, name, sourcePath, licenseFile, atlasConfig, ImmutableArray.Create(commands), outputAtlasFormat)
     {
     }
 
-    public CommandCreateAtlas(string atlasFileSourceDirectoryPath, string name, string sourcePath, string licenseFile, AtlasConfig atlasConfig,
+    public CommandCreateAtlas(string atlasFileSourceDirectoryPath, string name, string sourcePath, string? licenseFile, AtlasConfig atlasConfig,
                               ImmutableArray<AtlasCommand> commands, OutputAtlasFormat outputAtlasFormat)
       : base(CommandId.CreateAtlas)
     {

@@ -173,9 +173,9 @@ namespace TexturePacker.Input
       if (strVersion != "1")
         throw new NotSupportedException($"Unsupported version '{strVersion}' expected '1'");
 
-      var strDefaultCompany = XmlUtil.GetAttributeValueAsString(element, TexturePackerConfigAttribute_DefaultCompany, null);
-      var strDefaultNamespace = XmlUtil.GetAttributeValueAsString(element, TexturePackerConfigAttribute_DefaultNamespace, null);
-      var defaultFilename = XmlUtil.GetAttributeValueAsString(element, TexturePackerConfigAttribute_DefaultFilename, defaultValues.DefaultFilename);
+      string? strDefaultCompany = XmlUtil.TryGetAttributeValueAsString(element, TexturePackerConfigAttribute_DefaultCompany);
+      string? strDefaultNamespace = XmlUtil.TryGetAttributeValueAsString(element, TexturePackerConfigAttribute_DefaultNamespace);
+      string defaultFilename = XmlUtil.GetAttributeValueAsString(element, TexturePackerConfigAttribute_DefaultFilename, defaultValues.DefaultFilename);
 
       if (strDefaultCompany == null)
       {

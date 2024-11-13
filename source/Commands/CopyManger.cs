@@ -57,9 +57,9 @@ namespace TexturePacker.Commands
       public readonly FileoperationType Operation;
       public readonly string From;
       public readonly string To;
-      public ALicenseInfo CachedLicenceInfo;
+      public ALicenseInfo? CachedLicenceInfo;
 
-      public CopyRecord(FileoperationType operation, string from, string to, ALicenseInfo cachedLicenceInfo = null)
+      public CopyRecord(FileoperationType operation, string from, string to, ALicenseInfo? cachedLicenceInfo = null)
       {
         Debug.Assert(from != null);
         Debug.Assert(to != null);
@@ -100,7 +100,7 @@ namespace TexturePacker.Commands
       var record = new CopyRecord(FileoperationType.License, from, to, cachedLicenseInfo);
       // We do not allow filenames to only differ by casing
       var toId = to.ToUpperInvariant();
-      if (m_dict.TryGetValue(toId, out CopyRecord oldRecord))
+      if (m_dict.TryGetValue(toId, out CopyRecord? oldRecord))
       {
         HandleLicenseConflict(from, to, oldRecord);
         return;
@@ -197,7 +197,7 @@ namespace TexturePacker.Commands
       var record = new CopyRecord(FileoperationType.Normal, from, to);
       // We do not allow filenames to only differ by casing
       var toId = to.ToUpperInvariant();
-      if (m_dict.TryGetValue(toId, out CopyRecord oldRecord))
+      if (m_dict.TryGetValue(toId, out CopyRecord? oldRecord))
       {
         throw new Exception($"Copy of {from} to target file {to} conflicts with the copy from {oldRecord.From} of type {oldRecord.Operation}");
       }
@@ -225,6 +225,7 @@ namespace TexturePacker.Commands
         }
         else
         {
+          Debug.Assert(record.CachedLicenceInfo != null);
           dynamicLicenses.Add(new ResolvedCommandCopyFiles.DynamicMasterLicenseRecord(record.From, record.To, record.CachedLicenceInfo));
         }
         var dstDirectory = IOUtil.GetDirectoryName(record.To);

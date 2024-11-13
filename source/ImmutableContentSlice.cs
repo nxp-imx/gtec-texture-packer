@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace TexturePacker
@@ -76,10 +77,7 @@ namespace TexturePacker
 
     //------------------------------------------------------------------------------------------------------------------------------------------------
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is ImmutableContentSlice) ? false : (this == (ImmutableContentSlice)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is ImmutableContentSlice objValue && (this == objValue);
 
 
     //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -91,14 +89,13 @@ namespace TexturePacker
     public override string ToString() => $"({Position}:{Flags})";
 
     //------------------------------------------------------------------------------------------------------------------------------------------------
-    #region IEquatable<ImmutableContentSlice> Members
+    // IEquatable<ImmutableContentSlice> Members
     //------------------------------------------------------------------------------------------------------------------------------------------------
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(ImmutableContentSlice other) => Position == other.Position && Flags == other.Flags;
 
     //------------------------------------------------------------------------------------------------------------------------------------------------
-    #endregion
     //------------------------------------------------------------------------------------------------------------------------------------------------
   }
 }

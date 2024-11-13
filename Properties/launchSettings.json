@@ -2,8 +2,8 @@
   "profiles": {
     "TexturePacker": {
       "commandName": "Project",
-      "commandLineArgs": "--dev --debug --overwrite --noThreads  -vvv ",
-      "workingDirectory": "e:\\Work\\DemoFramework\\Resources\\Source\\BasicUI\\"
+      "commandLineArgs": "--dev --debug --overwrite -vvv  TexturePacker.xml",
+      "workingDirectory": "e:\\Work\\DemoFramework\\Resources\\Source\\DFSimpleUI101\\"
     }
   }
 }

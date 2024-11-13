@@ -175,19 +175,22 @@ namespace FslGraphics.Font.AngleCode
 
     private static Tuple<List<FontKerning>, int> ParseKernings(string[] lines, int lineIndex)
     {
-      var attributeDict = ParseLine(lines[lineIndex], "kernings");
-      var kerningCount = GetAttributeValueAsInt(attributeDict, "count");
-      ++lineIndex;
-
       var result = new List<FontKerning>();
-      while (lineIndex < lines.Length && lines[lineIndex].StartsWith("kerning ", StringComparison.Ordinal))
+      if (lines[lineIndex].StartsWith("kernings" + ' ', StringComparison.Ordinal))
       {
-        result.Add(ParseKerning(lines[lineIndex]));
+        var attributeDict = ParseLine(lines[lineIndex], "kernings");
+        var kerningCount = GetAttributeValueAsInt(attributeDict, "count");
         ++lineIndex;
-      }
 
-      if (result.Count != kerningCount)
-        throw new Exception($"File did not contain the expected amount of chars. Expected: {kerningCount} Found: {result.Count}");
+        while (lineIndex < lines.Length && lines[lineIndex].StartsWith("kerning ", StringComparison.Ordinal))
+        {
+          result.Add(ParseKerning(lines[lineIndex]));
+          ++lineIndex;
+        }
+
+        if (result.Count != kerningCount)
+          throw new Exception($"File did not contain the expected amount of chars. Expected: {kerningCount} Found: {result.Count}");
+      }
       return new Tuple<List<FontKerning>, int>(result, lineIndex);
     }
 

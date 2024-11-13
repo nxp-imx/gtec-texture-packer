@@ -1,4 +1,5 @@
-﻿/****************************************************************************************************************************************************
+﻿#nullable enable
+/****************************************************************************************************************************************************
  * Copyright 2020 NXP
  * All rights reserved.
  *
@@ -73,6 +74,16 @@ namespace FslGraphics.Font.Basic
       Ranges = ranges;
       Kerning = kerning;
       ValidateBasicFont();
+    }
+
+    public int CountChars()
+    {
+      int total = 0;
+      foreach (var range in Ranges)
+      {
+        total += range.Length;
+      }
+      return total;
     }
 
     private void ValidateBasicFont()

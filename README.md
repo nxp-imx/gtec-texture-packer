@@ -74,7 +74,7 @@ OutputAtlasFormat    | Set the default atlas format. Can be: *bta3, bta4, bta4C#
 
 Name                 | Description
 ---------------------|-------------------------
-TransparencyMode     | Set the transparency mode. Can be: *normal, pre-multiply*
+TransparencyMode     | Set the transparency mode. Can be: *normal, premultiply, premultiply-linear*
 
 ```xml
 <AtlasConfig TransparencyMode="premultiply">
@@ -171,7 +171,7 @@ DefaultDpi           | (optional) Override the default dpi.
 OutputAtlasFormat    | (optional) Override the default atlas output format.
 License              | (optional) Override all found licenses with the supplied one
 SourcePath           | (optional) Set a path that will be added to all 'relative sub command paths' (defaults to empty)
-TransparencyMode     | (optional) Override the default transparency mode. Can be: *normal, premultiply*.
+TransparencyMode     | (optional) Override the default transparency mode. Can be: *normal, premultiply, premultiply-linear*.
 
 ```xml
 <CreateAtlas Name="UIAtlas/UIAtlas_80dpi">

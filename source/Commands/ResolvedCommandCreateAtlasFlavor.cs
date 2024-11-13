@@ -37,7 +37,8 @@ namespace TexturePacker.Commands
   {
     public readonly ResolvedCommandCreateAtlas CreateAtlasCommand;
     private object m_lock = new object();
-    private ReadonlyGeneratedAtlasInformation m_result;
+    private bool m_resultSet;
+    private ReadonlyGeneratedAtlasInformation? m_result;
 
     public ResolvedCommandCreateAtlasFlavor(ResolvedCommandCreateAtlas createAtlasCommand)
       : base(CommandId.CreateAtlasFlavor)
@@ -45,17 +46,18 @@ namespace TexturePacker.Commands
       CreateAtlasCommand = createAtlasCommand ?? throw new ArgumentNullException(nameof(createAtlasCommand));
     }
 
-    public void SetResult(ReadonlyGeneratedAtlasInformation result)
+    public void SetResult(ReadonlyGeneratedAtlasInformation? result)
     {
       lock (m_lock)
       {
-        if (m_result != null)
+        if (m_resultSet)
           throw new Exception("Result already set");
+        m_resultSet = true;
         m_result = result;
       }
     }
 
-    public ReadonlyGeneratedAtlasInformation TryGetResult()
+    public ReadonlyGeneratedAtlasInformation? TryGetResult()
     {
       lock (m_lock)
       {

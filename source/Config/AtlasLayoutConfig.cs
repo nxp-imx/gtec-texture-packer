@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
@@ -52,11 +53,7 @@ namespace TexturePacker.Config
     public static bool operator !=(AtlasLayoutConfig lhs, AtlasLayoutConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is AtlasLayoutConfig) ? false : (this == (AtlasLayoutConfig)obj);
-    }
-
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is AtlasLayoutConfig objValue && (this == objValue);
 
     public override int GetHashCode() => AllowRotation.GetHashCode();
 

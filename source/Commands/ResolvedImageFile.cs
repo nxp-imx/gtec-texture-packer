@@ -46,12 +46,12 @@ namespace TexturePacker.Commands
     public readonly ResolvedPath AtlasPath;
     public readonly bool IsPatch;
     public readonly UInt16 Dpi;
-    public readonly AddNineSlice AddNineSlice;
-    public readonly AddComplexPatch AddComplexPatch;
+    public readonly AddNineSlice? AddNineSlice;
+    public readonly AddComplexPatch? AddComplexPatch;
     public readonly AddAnchor AddAnchor;
 
     public ResolvedImageFile(AtlasElementConfig elementConfig, ResolvedPath path, ResolvedPath atlasPath, bool isPatch, UInt16 dpi,
-                             AddNineSlice addNineSlice, AddComplexPatch addComplexPatch, AddAnchor addAnchor)
+                             AddNineSlice? addNineSlice, AddComplexPatch? addComplexPatch, AddAnchor? addAnchor)
     {
       if (!elementConfig.IsValid)
         throw new ArgumentException("invalid ElementConfig", nameof(elementConfig));

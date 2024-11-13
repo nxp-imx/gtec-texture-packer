@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020-2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,8 @@ namespace TexturePacker
   static class Program
   {
     public const int VersionMajor = 1;
-    public const int VersionMinor = 2;
-    public const int VersionPatch = 2;
+    public const int VersionMinor = 4;
+    public const int VersionPatch = 0;
 
     private const int PROGRAM_RESULT_SUCCESS = 0;
     private const int PROGRAM_RESULT_ERROR = 1;
@@ -181,7 +181,7 @@ namespace TexturePacker
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>")]
-    private static CommandGroup TryCreateCommandGroup(string userSuppliedFilename, string currentPath, List<VariableKeyValue> variableKeyValue,
+    private static CommandGroup? TryCreateCommandGroup(string userSuppliedFilename, string currentPath, List<VariableKeyValue> variableKeyValue,
                                                       string outputPath, out string rFinalFilename, bool traceNoUserFilename = true)
     {
       // Determine command path
@@ -213,7 +213,7 @@ namespace TexturePacker
         }
       }
 
-      string atlasFileSourceDirectoryPath = IOUtil.NormalizePath(Path.GetDirectoryName(userSuppliedFilename));
+      string atlasFileSourceDirectoryPath = IOUtil.GetDirectoryName(userSuppliedFilename);
       return CommandFileDecoder.Decode(strXmlCommandFile, texturePackerConfig, atlasFileSourceDirectoryPath, pathResolver, outputPath);
     }
 
@@ -256,6 +256,9 @@ namespace TexturePacker
 
     static int Main(string[] args)
     {
+      var defaultConfig = SixLabors.ImageSharp.Configuration.Default;
+      defaultConfig.PreferContiguousImageBuffers = true;
+
       bool debug = args.Contains("--debug");
       UInt32 verbosityLevel = FindVerbosityLevel(args);
       if (verbosityLevel > 0u)
@@ -264,7 +267,7 @@ namespace TexturePacker
         var target = new ConsoleTarget();
         //target.Layout = "${date:format=HH\\:MM\\:ss} ${logger} ${message} (TID:${threadid})";
         target.Layout = "${logger} ${message} (TID:${threadid})";
-        NLog.Config.SimpleConfigurator.ConfigureForTargetLogging(target, logLevel);
+        LogManager.Setup().LoadConfiguration(c => c.ForLogger(logLevel).WriteTo(target));
       }
 
       bool allowThreads = !args.Contains("--noThreads");
@@ -276,6 +279,7 @@ namespace TexturePacker
 
       try
       {
+
         return Process(args, allowThreads);
       }
       catch (System.Exception ex)
@@ -313,10 +317,10 @@ namespace TexturePacker
       public readonly bool HelpPrinted;
       public readonly bool DisableLicenseFiles;
       public readonly IOUtil.OverWritePolicy OverwritePolicy;
-      public readonly string Output;
+      public readonly string? Output;
 
       public ParsedArgRecord(bool recursive, List<string> positionalArgs, List<VariableKeyValue> variableKeyValue, bool helpPrinted, bool disableLicenseFiles,
-                             IOUtil.OverWritePolicy overwritePolicy, string output)
+                             IOUtil.OverWritePolicy overwritePolicy, string? output)
       {
         Recursive = recursive;
         PositionalArgs = positionalArgs ?? throw new ArgumentNullException(nameof(positionalArgs));
@@ -338,7 +342,7 @@ namespace TexturePacker
       var overwritePolicy = IOUtil.OverWritePolicy.NotAllowed;
       var variableKeyValue = new List<VariableKeyValue>();
       UInt32 verbosity = 0;
-      string output = null;
+      string? output = null;
       { // Process arguments
         for (int i = 0; i < args.Length; ++i)
         {
@@ -461,6 +465,8 @@ namespace TexturePacker
       if (appRootDir.StartsWith(prefix, StringComparison.Ordinal))
         appRootDir = appRootDir.Substring(prefix.Length);
       var appDirectory = Path.GetDirectoryName(appRootDir);
+      if (appDirectory == null)
+        throw new Exception("Could not find root config directory name");
       //var appFilenameWithoutExt = Path.GetFileNameWithoutExtension(appRootDir);
       //return Path.Combine(appDirectory, $"{appFilenameWithoutExt}.xml");
       return Path.Combine(appDirectory, ConfigFilename);
@@ -511,17 +517,18 @@ namespace TexturePacker
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>")]
-    private static string TryLocateClosestConfigFile(string currentPath)
+    private static string? TryLocateClosestConfigFile(string currentPath)
     {
+      string? activePath = currentPath;
       do
       {
-        string configFilename = IOUtil.Combine(currentPath, ConfigFilename);
+        string configFilename = IOUtil.Combine(activePath, ConfigFilename);
         g_logger.Trace("Trying to locate config file at '{0}'", configFilename);
         if (File.Exists(configFilename))
           return configFilename;
 
-        currentPath = Path.GetDirectoryName(currentPath);
-      } while (currentPath != null && currentPath.Length > 0);
+        activePath = Path.GetDirectoryName(activePath);
+      } while (activePath != null && activePath.Length > 0);
       return null;
     }
 

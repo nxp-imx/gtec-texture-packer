@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Config
 {
@@ -95,15 +96,11 @@ namespace TexturePacker.Config
     public static bool operator !=(AtlasElementConfig lhs, AtlasElementConfig rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is AtlasElementConfig) ? false : (this == (AtlasElementConfig)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is AtlasElementConfig objValue && (this == objValue);
 
 
     public override int GetHashCode()
-      => DefaultDpi.GetHashCode() ^ Extrude.GetHashCode() ^ Trim.GetHashCode() ^ TrimMargin.GetHashCode() ^ TransparencyThreshold.GetHashCode() ^
-         ShapePadding.GetHashCode() ^ BorderPadding.GetHashCode();
+      => HashCode.Combine(DefaultDpi, Extrude, Trim, TrimMargin, TransparencyThreshold, ShapePadding, BorderPadding);
 
 
     public bool Equals(AtlasElementConfig other) => this == other;

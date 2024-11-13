@@ -38,12 +38,12 @@ namespace TexturePacker.Commands.Atlas
   {
     public readonly string Path;
     public readonly AtlasElementConfig ElementConfig;
-    public readonly AddNineSlice AddNineSlice;
-    public readonly AddComplexPatch AddComplexPatch;
-    public readonly AddAnchor AddAnchor;
+    public readonly AddNineSlice? AddNineSlice;
+    public readonly AddComplexPatch? AddComplexPatch;
+    public readonly AddAnchor? AddAnchor;
 
-    public AtlasCommandAddFolderFileMod(string path, AtlasElementConfig elementConfig, AddNineSlice addNineSlice, AddComplexPatch addComplexPatch,
-                                        AddAnchor addAnchor)
+    public AtlasCommandAddFolderFileMod(string path, AtlasElementConfig elementConfig, AddNineSlice? addNineSlice, AddComplexPatch? addComplexPatch,
+                                        AddAnchor? addAnchor)
     {
       Path = path ?? throw new ArgumentNullException(nameof(path));
       if (addNineSlice != null && addComplexPatch != null)

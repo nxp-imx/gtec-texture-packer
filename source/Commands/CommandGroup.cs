@@ -50,7 +50,7 @@ namespace TexturePacker.Commands
     public readonly string SrcPath;
     public readonly string DstPath;
 
-    public CommandGroup(string companyName, string namespaceName, UInt32 creationYear, List<Command> commandList, PathResolver pathResolver, 
+    public CommandGroup(string companyName, string namespaceName, UInt32 creationYear, List<Command> commandList, PathResolver pathResolver,
                         TexturePackerConfig config, string srcPath, string dstPath)
     {
       CompanyName = companyName ?? throw new ArgumentNullException(nameof(companyName));

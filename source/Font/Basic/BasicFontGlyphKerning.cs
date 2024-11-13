@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,14 @@
 
 using MB.Base.MathEx.Pixel;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace FslGraphics.Font.Basic
 {
   /// <summary>
+  /// Contains basic font glyph kerning information
   /// </summary>
   public struct BasicFontGlyphKerning : IEquatable<BasicFontGlyphKerning>
   {
@@ -67,40 +69,21 @@ namespace FslGraphics.Font.Basic
     }
 
 
+    public static bool operator ==(BasicFontGlyphKerning lhs, BasicFontGlyphKerning rhs) => lhs.Id == rhs.Id && lhs.OffsetPx == rhs.OffsetPx && lhs.LayoutWidthPx == rhs.LayoutWidthPx;
 
-    public static bool operator ==(BasicFontGlyphKerning lhs, BasicFontGlyphKerning rhs)
-    {
-      return lhs.Id == rhs.Id && lhs.OffsetPx == rhs.OffsetPx && lhs.LayoutWidthPx == rhs.LayoutWidthPx;
-    }
-
-    public static bool operator !=(BasicFontGlyphKerning lhs, BasicFontGlyphKerning rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(BasicFontGlyphKerning lhs, BasicFontGlyphKerning rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is BasicFontGlyphKerning) ? false : (this == (BasicFontGlyphKerning)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? other) => other is BasicFontGlyphKerning otherValue && (this == otherValue);
 
 
-    public override int GetHashCode()
-    {
-      return Id.GetHashCode() ^ OffsetPx.GetHashCode() ^ LayoutWidthPx.GetHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(Id, OffsetPx, LayoutWidthPx);
 
 
-    public bool Equals(BasicFontGlyphKerning other)
-    {
-      return this == other;
-    }
+    public bool Equals(BasicFontGlyphKerning other) => this == other;
 
 
-    public override string ToString()
-    {
-      return $"Id: {Id} OffsetPx: {OffsetPx} LayoutWidthPx: {LayoutWidthPx}";
-    }
+    public override string ToString() => $"Id: {Id} OffsetPx: {OffsetPx} LayoutWidthPx: {LayoutWidthPx}";
   }
 
 }

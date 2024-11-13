@@ -112,7 +112,11 @@ namespace TexturePacker.Input
       {
         return TransparencyMode.Premultiply;
       }
-      throw new NotSupportedException($"Unsupported TransparencyMode '{value}', allowed values: {{'normal', 'premultiply'}}");
+      if (value == "premultiply-linear")
+      {
+        return TransparencyMode.PremultiplyUsingLinearColors;
+      }
+      throw new NotSupportedException($"Unsupported TransparencyMode '{value}', allowed values: {{'normal', 'premultiply', 'premultiply-linear'}}");
     }
 
     public static LicenseFormat ParseAsLicenseFormat(string value)

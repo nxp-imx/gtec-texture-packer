@@ -36,7 +36,7 @@ namespace TexturePacker.Commands
 {
   public static class AtlasPathManager
   {
-    public static string CreateRelativeAtlasPath(ResolvedPath parentFolderPath, string absFilePath)
+    public static string CreateRelativeAtlasPath(ResolvedParentPath parentFolderPath, string absFilePath)
     {
       if (parentFolderPath == null)
         throw new ArgumentNullException(nameof(parentFolderPath));
@@ -50,7 +50,7 @@ namespace TexturePacker.Commands
       return IOUtil.NormalizePath(atlasPath);
     }
 
-    public static string CreateRelativeFontAtlasPath(ResolvedPath fontFilePath, string overrideName)
+    public static string CreateRelativeFontAtlasPath(ResolvedPath fontFilePath, string? overrideName)
     {
       if (fontFilePath == null)
         throw new ArgumentNullException(nameof(fontFilePath));

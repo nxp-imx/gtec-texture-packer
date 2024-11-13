@@ -31,6 +31,7 @@
 
 using MB.Base.MathEx.Pixel;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -84,40 +85,20 @@ namespace FslGraphics.Font.AngleCode
 
 
     public static bool operator ==(FontChar lhs, FontChar rhs)
-    {
-      return lhs.Id == rhs.Id && lhs.SrcTextureRectPx == rhs.SrcTextureRectPx && lhs.OffsetPx == rhs.OffsetPx &&
-             lhs.XAdvancePx == rhs.XAdvancePx && lhs.Page == rhs.Page && lhs.Chnl == rhs.Chnl;
-    }
+      => lhs.Id == rhs.Id && lhs.SrcTextureRectPx == rhs.SrcTextureRectPx && lhs.OffsetPx == rhs.OffsetPx &&
+         lhs.XAdvancePx == rhs.XAdvancePx && lhs.Page == rhs.Page && lhs.Chnl == rhs.Chnl;
 
 
-    public static bool operator !=(FontChar lhs, FontChar rhs)
-    {
-      return !(lhs == rhs);
-    }
+    public static bool operator !=(FontChar lhs, FontChar rhs) => !(lhs == rhs);
 
+    public override bool Equals([NotNullWhen(true)] object? other) => other is FontChar otherValue && (this == otherValue);
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is FontChar) ? false : (this == (FontChar)obj);
-    }
+    public override int GetHashCode() => HashCode.Combine(Id, SrcTextureRectPx, OffsetPx, XAdvancePx, Page, Chnl);
 
-
-    public override int GetHashCode()
-    {
-      return Id.GetHashCode() ^ SrcTextureRectPx.GetHashCode() ^ OffsetPx.GetHashCode() ^ XAdvancePx.GetHashCode() ^ Page.GetHashCode() ^
-             Chnl.GetHashCode();
-    }
-
-
-    public bool Equals(FontChar other)
-    {
-      return this == other;
-    }
+    public bool Equals(FontChar other) => this == other;
 
     public override string ToString()
-    {
-      return $"Id: {Id} SrcTextureRectPx: {SrcTextureRectPx} OffsetPx: {OffsetPx} XAdvancePx: {XAdvancePx} Page: {Page} Chnl: {Chnl}";
-    }
+      => $"Id: {Id} SrcTextureRectPx: {SrcTextureRectPx} OffsetPx: {OffsetPx} XAdvancePx: {XAdvancePx} Page: {Page} Chnl: {Chnl}";
   }
 
 }

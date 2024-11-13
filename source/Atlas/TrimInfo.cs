@@ -31,6 +31,7 @@
 
 using MB.Base.MathEx.Pixel;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Atlas
 {
@@ -50,13 +51,10 @@ namespace TexturePacker.Atlas
     public static bool operator !=(TrimInfo lhs, TrimInfo rhs) => !(lhs == rhs);
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is TrimInfo) ? false : (this == (TrimInfo)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? other) => other is TrimInfo otherValue && (this == otherValue);
 
 
-    public override int GetHashCode() => RectanglePx.GetHashCode() ^ MarginPx.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(RectanglePx, MarginPx);
 
 
     public bool Equals(TrimInfo other) => this == other;

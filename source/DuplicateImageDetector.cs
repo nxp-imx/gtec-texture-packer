@@ -83,13 +83,13 @@ namespace TexturePacker
     }
 
     /// <summary>
-    ///
+    /// Detect duplicates
     /// </summary>
     /// <param name="elements"></param>
     /// <returns>The key is the original image index. The value will be the original index of the first duplicate
     ///          (the first duplicate will not be part of the dict).
     ///          The first duplicate will always tbe the lowest original index.</returns>
-    public static Dictionary<int, int> TryDetectDuplicates(List<AtlasElement> elements)
+    public static Dictionary<int, int>? TryDetectDuplicates(List<AtlasElement> elements)
     {
       var hashes = ComputeImageHashes(elements);
 
@@ -98,7 +98,7 @@ namespace TexturePacker
       int possibleDuplicateCount = 0;
       foreach (var entry in hashes)
       {
-        if (possibleDuplicatesDict.TryGetValue(entry.Hash, out List<ImageHashRecord> possibleDuplicateList))
+        if (possibleDuplicatesDict.TryGetValue(entry.Hash, out List<ImageHashRecord>? possibleDuplicateList))
         {
           // Possible duplicate found
           possibleDuplicateList.Add(entry);
@@ -128,7 +128,7 @@ namespace TexturePacker
     }
 
     /// <summary>
-    ///
+    /// Detect duplicates
     /// </summary>
     /// <param name="duplicateDict"></param>
     /// <param name="duplicateCandidates">WARNING: this will be modified</param>

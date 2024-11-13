@@ -42,10 +42,8 @@ namespace FslGraphics.Font.Basic
   /// Write a binary basic font kerning file.
   /// This is a very simple font format.
   /// </summary>
-  public class BinaryFontBasicKerningEncoder
+  public class BinaryFontBasicKerningEncoder : BinaryFontBasicKerning
   {
-    public readonly string DefaultExtension = "fbk";
-
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "We want to keep this a object for future modifications")]
     public ByteList Encode(BasicFont basicFont)
     {
@@ -76,7 +74,7 @@ namespace FslGraphics.Font.Basic
     {
       Debug.Assert(dstBuffer != null);
 
-      dstBuffer.AddUInt32(0x004B4246);
+      dstBuffer.AddUInt32(HeaderMagic);
       dstBuffer.AddUInt32(1);
       var offset = dstBuffer.Count;
       dstBuffer.AddUInt32(0);

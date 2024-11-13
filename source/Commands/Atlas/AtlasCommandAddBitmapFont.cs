@@ -30,7 +30,6 @@
  ****************************************************************************************************************************************************/
 
 using FslGraphics.Font.BF;
-using MB.Base.MathEx.Pixel;
 using NLog;
 using System;
 using System.Collections.Immutable;
@@ -85,9 +84,9 @@ namespace TexturePacker.Commands.Atlas
     /// </summary>
     public readonly UInt16 MeasureHeightPx;
 
-    public readonly BitmapFontSdfConfig SdfConfig;
+    public readonly BitmapFontSdfConfig? SdfConfig;
 
-    public BitmapFontTweakConfig(UInt16 baseLinePx, UInt16 lineSpacingPx, UInt32 measureCharId, UInt16 measureHeightPx, BitmapFontSdfConfig sdfConfig)
+    public BitmapFontTweakConfig(UInt16 baseLinePx, UInt16 lineSpacingPx, UInt32 measureCharId, UInt16 measureHeightPx, BitmapFontSdfConfig? sdfConfig)
     {
       BaseLinePx = baseLinePx;
       LineSpacingPx = lineSpacingPx;
@@ -103,19 +102,19 @@ namespace TexturePacker.Commands.Atlas
 
     public readonly AtlasElementConfig ElementConfig;
     public readonly string FilePath;
-    public readonly string Name;  // can be null
+    public readonly string? Name;  // can be null
     public readonly BitmapFontType Type;
     public readonly ImmutableHashSet<OutputFontFormat> OutputFontFormats;
     public readonly BitmapFontTweakConfig TweakConfig;
 
-    public AtlasCommandAddBitmapFont(AtlasElementConfig elementConfig, string filePath, string name, BitmapFontType type,
+    public AtlasCommandAddBitmapFont(AtlasElementConfig elementConfig, string filePath, string? name, BitmapFontType type,
                                      ImmutableHashSet<OutputFontFormat> outputFontFormats, BitmapFontTweakConfig tweakConfig)
       : base(AtlasCommandId.AddBitmapFont)
     {
       if (!elementConfig.IsValid)
         throw new ArgumentException("invalid ElementConfig", nameof(elementConfig));
       NameUtil.ValidatePathName(filePath);
-      if(name != null)
+      if (name != null)
         NameUtil.IsValidVariableName(name);
 
       if (outputFontFormats == null)

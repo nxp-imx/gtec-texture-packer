@@ -49,6 +49,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TexturePacker.Atlas;
 using TexturePacker.Commands;
@@ -215,7 +216,20 @@ namespace TexturePacker
     private static Tuple<AtlasBitmapFontElement[], EmbeddedFontRecord> AddBitmapFont(ResolvedAtlasCommandAddBitmapFont cmd)
     {
       g_logger.Trace("AddBitmapFont");
-      g_logger.Trace("- Loading font definition {0}", cmd.FilePath.AbsolutePath);
+      if (cmd.FilePath.RelativeResolvedSourcePath.EndsWith(".fnt", StringComparison.InvariantCultureIgnoreCase))
+      {
+        return AddAngleCodeFont(cmd);
+      }
+      if (cmd.FilePath.RelativeResolvedSourcePath.EndsWith($".{BinaryFontBasicKerning.DefaultFileExtension}", StringComparison.InvariantCultureIgnoreCase))
+      {
+        return AddBasicFont(cmd);
+      }
+      throw new NotSupportedException($"Unsupported font format in file: {cmd.FilePath.RelativeResolvedSourcePath}");
+    }
+
+    private static Tuple<AtlasBitmapFontElement[], EmbeddedFontRecord> AddAngleCodeFont(ResolvedAtlasCommandAddBitmapFont cmd)
+    {
+      g_logger.Trace("- Loading angle code font definition {0}", cmd.FilePath.AbsolutePath);
 
       var config = cmd.ElementConfig;
 
@@ -228,7 +242,7 @@ namespace TexturePacker
 
       g_logger.Trace("- Loading image {0}", bitmapPath);
 
-      SafeImage dummyEmptyImage = null;
+      SafeImage? dummyEmptyImage = null;
       using (var fontImage = new SafeImage(Image.Load<Rgba32>(bitmapPath)))
       {
         var result = new AtlasBitmapFontElement[bitmapFont.Chars.Length];
@@ -253,6 +267,101 @@ namespace TexturePacker
         return Tuple.Create(result, new EmbeddedFontRecord(cmd, bitmapFont));
       }
     }
+
+    private static Tuple<AtlasBitmapFontElement[], EmbeddedFontRecord> AddBasicFont(ResolvedAtlasCommandAddBitmapFont cmd)
+    {
+      g_logger.Trace("- Loading basic font definition {0}", cmd.FilePath.AbsolutePath);
+
+      var config = cmd.ElementConfig;
+
+      var fontFormat = File.ReadAllBytes(cmd.FilePath.AbsolutePath);
+      BasicFont basicFont = BinaryFontBasicKerninDecoder.Decode(fontFormat);
+      var bitmapFont = FslGraphics.Font.Converter.TypeConverter.ToBitmapFont(basicFont, cmd.Type, cmd.TweakConfig.SdfConfig, config.DefaultDpi);
+
+      // When we add a basic font like this we assume the fonts glyphs are stored in separate bitmaps
+
+      var fontDir = IOUtil.GetDirectoryName(cmd.FilePath.AbsolutePath);
+      //var bitmapPath = IOUtil.Combine(fontDir, bitmapFont.TextureName);
+
+      // Count the glyphs
+      var result = new AtlasBitmapFontElement[bitmapFont.Chars.Length];
+
+      // Run through each available glyph
+      SafeImage? dummyEmptyImage = null;
+      int charIndex = 0;
+      foreach (var range in basicFont.Ranges)
+      {
+        var glyphStartIndex = range.From;
+        var glyphEndIndex = range.From + range.Length;
+        for (int glyphIndex = glyphStartIndex; glyphIndex < glyphEndIndex; ++glyphIndex)
+        {
+          UInt32 fontCharId = NumericCast.ToUInt32(glyphIndex);
+          string bitmapPath = IOUtil.Combine(fontDir, $"{fontCharId:X}.png");
+          string atlasCharPath = IOUtil.Combine(cmd.RelativeFontAtlasPath, $"{fontCharId:X2}");
+          if (File.Exists(bitmapPath))
+          {
+            g_logger.Trace("- Loading image {0}", bitmapPath);
+            using (var fontImage = new SafeImage(Image.Load<Rgba32>(bitmapPath)))
+            {
+              if (fontImage.Size.Width > 0 && fontImage.Size.Height > 0)
+              {
+                var charImage = fontImage.CloneCrop(new PxRectangle(0, 0, fontImage.Size.Width, fontImage.Size.Height));
+                var trimInfo = ProcessImageElement(ref charImage, config);
+                result[charIndex] = new AtlasBitmapFontElement(atlasCharPath, charImage, trimInfo, config.DefaultDpi, bitmapFont, fontCharId, charIndex);
+              }
+              else
+              {
+                if (dummyEmptyImage == null)
+                  dummyEmptyImage = new SafeImage();
+                result[charIndex] = new AtlasBitmapFontElement(atlasCharPath, dummyEmptyImage, new TrimInfo(), config.DefaultDpi, bitmapFont,
+                                                               fontCharId, charIndex);
+              }
+            }
+          }
+          else
+          {
+            if (dummyEmptyImage == null)
+              dummyEmptyImage = new SafeImage();
+            result[charIndex] = new AtlasBitmapFontElement(atlasCharPath, dummyEmptyImage, new TrimInfo(), config.DefaultDpi, bitmapFont,
+                                                           fontCharId, charIndex);
+          }
+          ++charIndex;
+        }
+      }
+
+      // Finally we patch the bitmap font with the actual source rects
+      var patchedChars = PatchBitmapFont(bitmapFont, result);
+      var patchedBitmapFont = new BitmapFont(bitmapFont.Name, bitmapFont.Dpi, bitmapFont.Size, bitmapFont.LineSpacingPx, bitmapFont.BaseLinePx,
+                                             bitmapFont.PaddingPx, bitmapFont.TextureName, bitmapFont.FontType, bitmapFont.SdfSpread,
+                                             bitmapFont.SdfDesiredBaseLinePx, patchedChars, bitmapFont.Kernings);
+      patchedBitmapFont = FslGraphics.Font.Process.ProcessUtil.Tweak(patchedBitmapFont, cmd.TweakConfig, new TraceInfo("AddBitmapFont", cmd.FilePath.RelativeResolvedSourcePath));
+
+      // Patch the result records
+      for (int i = 0; i < result.Length; ++i)
+      {
+        result[i] = AtlasBitmapFontElement.PatchFont(result[i], patchedBitmapFont);
+      }
+      return Tuple.Create(result, new EmbeddedFontRecord(cmd, patchedBitmapFont));
+    }
+
+    private static ImmutableArray<BitmapFontChar> PatchBitmapFont(BitmapFont bitmapFont, AtlasBitmapFontElement[] result)
+    {
+      if (bitmapFont.Chars.Length != result.Length)
+        throw new Exception("Internal error");
+
+      var builder = ImmutableArray.CreateBuilder<BitmapFontChar>(result.Length);
+      for (int i = 0; i < result.Length; ++i)
+      {
+        var srcChar = bitmapFont.Chars[i];
+        UInt32 id = srcChar.Id;
+        PxRectangle srcTextureRectPx = result[i].CroppedRectanglePx;
+        PxPoint2 offsetPx = srcChar.OffsetPx;
+        UInt16 xAdvancePx = srcChar.XAdvancePx;
+        builder.Add(new BitmapFontChar(id, srcTextureRectPx, offsetPx, xAdvancePx));
+      }
+      return builder.MoveToImmutable();
+    }
+
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>")]
     private static List<AtlasElement> AddFolder(ResolvedAtlasCommandAddFolder cmd)
@@ -283,7 +392,7 @@ namespace TexturePacker
 
       var image = new SafeImage(Image.Load<Rgba32>(filePath));
 
-      AtlasElementPatchInfo patchInfo = null;
+      AtlasElementPatchInfo? patchInfo = null;
       if (srcImageFile.IsPatch)
       {
         patchInfo = ProcessPatchImage(ref image, filePath);
@@ -375,7 +484,10 @@ namespace TexturePacker
       if (rImage.Size.Width < 3 || rImage.Size.Height < 3)
         throw new Exception($"Patch images must be atleast 3x3 pixels '{debugPath}'");
 
-      AtlasElementPatchInfo patchInfo = rImage.TryProcessPatchInfo();
+      AtlasElementPatchInfo? patchInfo = rImage.TryProcessPatchInfo();
+      if (patchInfo == null)
+        throw new Exception("Failed to acquire patch info");
+
       // Remove the 'patch' area
       {
         var trimmedImage = rImage.CloneCrop(new PxThicknessU(1, 1, 1, 1));
@@ -527,7 +639,7 @@ namespace TexturePacker
     }
 
     private static void DrawImages(PxSize2D dstImageSize, List<PackedAtlasImage> images, PxPoint2 offsetPx, SafeImage atlasImage,
-                                   AtlasImageType drawImageType, List<PackedAtlasImage> filteredImages = null)
+                                   AtlasImageType drawImageType, List<PackedAtlasImage>? filteredImages = null)
     {
       foreach (var packEntry in images)
       {
@@ -801,13 +913,13 @@ namespace TexturePacker
       return new PackedDict(lookupDict);
     }
 
-    private static ReadonlyGeneratedAtlasInformation CreateAtlas(ResolvedCommandCreateAtlas createAtlasCmd, in CommandSettings commandSettings, bool generateAtlasInformation)
+    private static ReadonlyGeneratedAtlasInformation? TryCreateAtlas(ResolvedCommandCreateAtlas createAtlasCmd, in CommandSettings commandSettings, bool generateAtlasInformation)
     {
-      g_logger.Trace("CreateAtlas");
+      g_logger.Trace(nameof(TryCreateAtlas));
 
       var atlasImagePathSet = new HashSet<string>();
-      List<AtlasElement> atlasElements = null;
-      BasicTextureAtlas basicTextureAtlas = null;
+      List<AtlasElement>? atlasElements = null;
+      BasicTextureAtlas? basicTextureAtlas = null;
       try
       {
         var (newAtlasElements, embeddedFonts) = PrepareAtlasElements(createAtlasCmd.Commands);
@@ -895,6 +1007,9 @@ namespace TexturePacker
         case TransparencyMode.Premultiply:
           atlasImage.Premultiply();
           return;
+        case TransparencyMode.PremultiplyUsingLinearColors:
+          atlasImage.PremultiplyUsingLinearColors();
+          return;
         default:
           throw new NotSupportedException($"Unsupported transparency mode: {transparencyMode}");
       }
@@ -979,12 +1094,12 @@ namespace TexturePacker
           {
             // Create the atlas and generate the information about it that can be used to validate the atlas flavor against all other flavors
             var commandEx = (ResolvedCommandCreateAtlasFlavor)command;
-            ReadonlyGeneratedAtlasInformation generatedAtlasInformation = CreateAtlas(commandEx.CreateAtlasCommand, commandSettings, true);
+            ReadonlyGeneratedAtlasInformation? generatedAtlasInformation = TryCreateAtlas(commandEx.CreateAtlasCommand, commandSettings, true);
             commandEx.SetResult(generatedAtlasInformation);
           }
           break;
         case CommandId.CreateAtlas:
-          CreateAtlas((ResolvedCommandCreateAtlas)command, commandSettings, false);
+          TryCreateAtlas((ResolvedCommandCreateAtlas)command, commandSettings, false);
           break;
         case CommandId.CopyFiles:
           CopyFiles((ResolvedCommandCopyFiles)command, commandSettings);
@@ -1065,7 +1180,7 @@ namespace TexturePacker
 
       var dstFilenameFinal = $"{dstFilename}.png";
 
-      byte[] serialized = null;
+      byte[]? serialized = null;
       using (var stream = new MemoryStream())
       {
         image.Save(stream, SafeImage.ImageFormat.Png);

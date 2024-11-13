@@ -52,7 +52,7 @@ namespace TexturePacker.Atlas
     /// <summary>
     /// Will be null for non-patch elements
     /// </summary>
-    public readonly AtlasElementPatchInfo PatchInfo;
+    public readonly AtlasElementPatchInfo? PatchInfo;
 
     public readonly ImmutableArray<PxPoint2> AnchorPoints;
 
@@ -68,7 +68,7 @@ namespace TexturePacker.Atlas
     /// <param name="patchInfo"></param>
     /// <param name="anchorPoints"></param>
     public AtlasElement(string sourcePath, SafeImage sourceImage, TrimInfo sourceTrimInfo, UInt16 dpi, AtlasImageType imageType,
-                        AtlasElementPatchInfo patchInfo, ImmutableArray<PxPoint2> anchorPoints)
+                        AtlasElementPatchInfo? patchInfo, ImmutableArray<PxPoint2> anchorPoints)
     {
       SourcePath = sourcePath ?? throw new ArgumentNullException(nameof(sourcePath));
       SourceImage = sourceImage ?? throw new ArgumentNullException(nameof(sourceImage));

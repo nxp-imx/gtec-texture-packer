@@ -33,20 +33,14 @@ using System;
 
 namespace TexturePacker.Commands
 {
-  public class ResolvedPath
+  public class ResolvedParentPath
   {
     public readonly string AbsolutePath;
     public readonly string RelativeResolvedSourcePath;
     public readonly string RelativeUnresolvedSourcePath;
     public readonly string UnresolvedSourcePath;
-    public readonly ResolvedPath ParentPath;
 
-    //public ResolvedPath(string absolutePath, string unresolvedSourcePath, ResolvedPath parentPath = null)
-    //  : this(absolutePath, unresolvedSourcePath, unresolvedSourcePath, parentPath)
-    //{
-    //}
-
-    public ResolvedPath(string absolutePath, string unresolvedSourcePath, string relativeResolvedSourcePath, string relativeUnresolvedSourcePath)
+    public ResolvedParentPath(string absolutePath, string unresolvedSourcePath, string relativeResolvedSourcePath, string relativeUnresolvedSourcePath)
     {
       AbsolutePath = absolutePath ?? throw new ArgumentNullException(nameof(absolutePath));
       UnresolvedSourcePath = unresolvedSourcePath ?? throw new ArgumentNullException(nameof(unresolvedSourcePath));
@@ -59,8 +53,7 @@ namespace TexturePacker.Commands
       RelativeUnresolvedSourcePath = IOUtil.NormalizePath(RelativeUnresolvedSourcePath);
     }
 
-
-    public ResolvedPath(string absolutePath, string unresolvedSourcePath, ResolvedPath parentPath)
+    protected ResolvedParentPath(string absolutePath, string unresolvedSourcePath, ResolvedParentPath parentPath)
     {
       if (absolutePath == null)
         throw new ArgumentNullException(nameof(absolutePath));
@@ -80,10 +73,28 @@ namespace TexturePacker.Commands
       UnresolvedSourcePath = IOUtil.NormalizePath(unresolvedSourcePath);
 
       RelativeResolvedSourcePath = parentPath.AbsolutePath;
-
-
       RelativeResolvedSourcePath = IOUtil.RemoveStartDirectoryName(absolutePath, parentPath.AbsolutePath);
       RelativeUnresolvedSourcePath = IOUtil.RemoveStartDirectoryName(unresolvedSourcePath, parentPath.UnresolvedSourcePath);
+    }
+  }
+
+  public sealed class ResolvedPath : ResolvedParentPath
+  {
+    public readonly ResolvedParentPath ParentPath;
+
+    public ResolvedPath(string absolutePath, string unresolvedSourcePath, string relativeResolvedSourcePath, string relativeUnresolvedSourcePath)
+      : base(absolutePath, unresolvedSourcePath, relativeResolvedSourcePath, relativeUnresolvedSourcePath)
+    {
+      ParentPath = new ResolvedParentPath(IOUtil.GetDirectoryName(absolutePath),
+                                          IOUtil.GetDirectoryName(unresolvedSourcePath),
+                                          IOUtil.GetDirectoryName(relativeResolvedSourcePath),
+                                          IOUtil.GetDirectoryName(relativeUnresolvedSourcePath));
+    }
+
+
+    public ResolvedPath(string absolutePath, string unresolvedSourcePath, ResolvedParentPath parentPath)
+      : base(absolutePath, unresolvedSourcePath, parentPath)
+    {
       ParentPath = parentPath;
 
       // Validate
@@ -114,13 +125,11 @@ namespace TexturePacker.Commands
       string absolutePath = IOUtil.GetDirectoryName(path.AbsolutePath);
       //string relativeResolvedSourcePath = IOUtil.GetDirectoryName(path.RelativeResolvedSourcePath);
       string unresolvedSourcePath = IOUtil.GetDirectoryName(path.UnresolvedSourcePath);
-      if (path.ParentPath != null)
-      {
-        if (!IOUtil.PathStartsWithDir(absolutePath, path.ParentPath.AbsolutePath))
-          throw new NotSupportedException("GetDirectoryname");
-        if (!IOUtil.PathStartsWithDir(unresolvedSourcePath, path.ParentPath.UnresolvedSourcePath))
-          throw new NotSupportedException("GetDirectoryname");
-      }
+
+      if (!IOUtil.PathStartsWithDir(absolutePath, path.ParentPath.AbsolutePath))
+        throw new NotSupportedException("GetDirectoryName");
+      if (!IOUtil.PathStartsWithDir(unresolvedSourcePath, path.ParentPath.UnresolvedSourcePath))
+        throw new NotSupportedException("GetDirectoryName");
 
       return new ResolvedPath(absolutePath, unresolvedSourcePath, path.ParentPath);
     }

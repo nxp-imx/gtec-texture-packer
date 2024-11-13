@@ -33,6 +33,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using TexturePacker.Commands.Atlas;
 using TexturePacker.Input;
 
@@ -83,14 +84,10 @@ namespace TexturePacker.Commands
 
       public static bool operator !=(FontValidationInfo lhs, FontValidationInfo rhs) => !(lhs == rhs);
 
-      public override bool Equals(object obj)
-      {
-        return !(obj is FontValidationInfo) ? false : (this == (FontValidationInfo)obj);
-      }
+      public override bool Equals([NotNullWhen(true)] object? obj) => obj is FontValidationInfo objValue && (this == objValue);
 
 
       public override int GetHashCode() => (Name != null ? Name.GetHashCode(StringComparison.Ordinal) : 0) ^ OutputFontFormats.GetHashCode();
-
 
       public bool Equals(FontValidationInfo other) => this == other;
     }
@@ -333,7 +330,7 @@ namespace TexturePacker.Commands
       foreach (ImageFileInfo fileInfo in imageFiles)
       {
         var fileId = fileInfo.Name.ToUpperInvariant();
-        if (!allImageDict.TryGetValue(fileId, out ImageFileRecord record))
+        if (!allImageDict.TryGetValue(fileId, out ImageFileRecord? record))
         {
           record = new ImageFileRecord(fileInfo, sourceCommand);
           allImageDict.Add(fileId, record);
@@ -360,7 +357,7 @@ namespace TexturePacker.Commands
       foreach (string filename in generatedFiles)
       {
         var fileId = filename.ToUpperInvariant();
-        if (!allGeneratedDict.TryGetValue(fileId, out GeneratedFileRecord record))
+        if (!allGeneratedDict.TryGetValue(fileId, out GeneratedFileRecord? record))
         {
           record = new GeneratedFileRecord(filename, sourceCommand);
           allGeneratedDict.Add(fileId, record);

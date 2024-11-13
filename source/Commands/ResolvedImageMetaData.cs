@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 using MB.Graphics2.Patch.Advanced;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TexturePacker.Commands
 {
@@ -42,7 +43,7 @@ namespace TexturePacker.Commands
     public readonly int AnchorPoints;
     public readonly string PatchInfo;
 
-    public ResolvedImageMetaData(bool isPatch, bool wasNineSlice, int anchorPoints, AddComplexPatch addComplexPatch)
+    public ResolvedImageMetaData(bool isPatch, bool wasNineSlice, int anchorPoints, AddComplexPatch? addComplexPatch)
     {
       IsPatch = isPatch;
       WasNineSlice = wasNineSlice;
@@ -54,10 +55,10 @@ namespace TexturePacker.Commands
       => lhs.IsPatch == rhs.IsPatch && lhs.WasNineSlice == rhs.WasNineSlice && lhs.AnchorPoints == rhs.AnchorPoints &&
          lhs.PatchInfo == rhs.PatchInfo;
 
-    public readonly override bool Equals(object obj) => !(obj is ResolvedImageMetaData) ? false : (this == (ResolvedImageMetaData)obj);
+    public readonly override bool Equals([NotNullWhen(true)] object? obj) => obj is ResolvedImageMetaData objValue && (this == objValue);
 
     public readonly override int GetHashCode()
-      => IsPatch.GetHashCode() ^ WasNineSlice.GetHashCode() ^ AnchorPoints.GetHashCode();
+      => HashCode.Combine(IsPatch, WasNineSlice, AnchorPoints);
 
     public readonly bool Equals(ResolvedImageMetaData other) => this == other;
 
@@ -66,7 +67,7 @@ namespace TexturePacker.Commands
     public readonly override string ToString() => $"IsPatch:{IsPatch} WasNineSlice:{WasNineSlice} AnchorPoints:{AnchorPoints} PatchInfo:{PatchInfo}";
 
 
-    public static string BuildPatchInfo(AddComplexPatch value)
+    public static string BuildPatchInfo(AddComplexPatch? value)
     {
       if (value == null)
         return "{}";
@@ -74,15 +75,9 @@ namespace TexturePacker.Commands
       return Encode(value.Patch);
     }
 
-    public static string Encode(in ImmutableComplexPatch patch)
-    {
-      return $"{{ {Encode(patch.Slices)}, {Encode(patch.ContentSpans)} }}";
-    }
+    public static string Encode(in ImmutableComplexPatch patch) => $"{{ {Encode(patch.Slices)}, {Encode(patch.ContentSpans)} }}";
 
-    public static string Encode(in ImmutableComplexPatchSlices slices)
-    {
-      return $"{{ {Encode(slices.AsSpanX())}, {Encode(slices.AsSpanY())} }}";
-    }
+    public static string Encode(in ImmutableComplexPatchSlices slices) => $"{{ {Encode(slices.AsSpanX())}, {Encode(slices.AsSpanY())} }}";
 
     private static string Encode(ReadOnlySpan<ImmutableComplexPatchSlice> span)
     {
@@ -94,14 +89,8 @@ namespace TexturePacker.Commands
       return $"{{ {string.Join(",", entries)} }}";
     }
 
-    private static string Encode(in ImmutablePatchContentSpans value)
-    {
-      return $"{{ {Encode(value.AsSpanX())}, {Encode(value.AsSpanY())} }}";
-    }
+    private static string Encode(in ImmutablePatchContentSpans value) => $"{{ {Encode(value.AsSpanX())}, {Encode(value.AsSpanY())} }}";
 
-    private static string Encode(ReadOnlySpan<ImmutableContentSpan> span)
-    {
-      return $"{span.Length}";
-    }
+    private static string Encode(ReadOnlySpan<ImmutableContentSpan> span) => $"{span.Length}";
   }
 }

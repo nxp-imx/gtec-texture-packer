@@ -42,17 +42,17 @@ namespace TexturePacker.Commands.Atlas
     public readonly string Path;
     public readonly AtlasElementConfig ElementConfig;
     public readonly UInt16 Dpi;
-    public readonly AddNineSlice AddNineSlice;
-    public readonly AddComplexPatch AddComplexPatch;
-    public readonly AddAnchor AddAnchor;
+    public readonly AddNineSlice? AddNineSlice;
+    public readonly AddComplexPatch? AddComplexPatch;
+    public readonly AddAnchor? AddAnchor;
 
     /// <summary>
-    ///
+    /// Add a image
     /// </summary>
     /// <param name="imagePath"></param>
-    /// <param name="defaultDpi">the fallback that is used if Dpi is zero</param>
+    /// <param name="dpi">the fallback that is used if Dpi is zero</param>
     /// <param name="dpi">if this is non zero then the image will be assigned this Dpi</param>
-    public AtlasCommandAddImage(AtlasElementConfig elementConfig, string imagePath, UInt16 dpi, AddNineSlice addNineSlice, AddComplexPatch addComplexPatch, AddAnchor addAnchor)
+    public AtlasCommandAddImage(AtlasElementConfig elementConfig, string imagePath, UInt16 dpi, AddNineSlice? addNineSlice, AddComplexPatch? addComplexPatch, AddAnchor? addAnchor)
       : base(AtlasCommandId.AddImage)
     {
       if (!elementConfig.IsValid)

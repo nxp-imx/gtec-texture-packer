@@ -1,5 +1,6 @@
-﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+﻿#nullable enable
+/****************************************************************************************************************************************************
+ * Copyright 2020,2024 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +38,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using TexturePacker.Commands.Atlas;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -44,17 +46,76 @@ using System.Diagnostics;
 namespace FslGraphics.Font.Converter
 {
   /// <summary>
+  /// BitmapFont to BasicFont
   /// </summary>
   public sealed partial class TypeConverter
   {
-    #region BitmapFont to BasicFont
-
     private enum BitmapFontExtractRangeState
     {
       FindBegin = 1,
       FindEnd = 2
     }
 
+    /// <summary>
+    /// WARNING: the BitmapFontChar.SrcTextureRectPx needs to be patched as its set to empty
+    /// </summary>
+    /// <param name="font"></param>
+    /// <param name="fontType"></param>
+    /// <param name="sdfConfig"></param>
+    /// <param name="dpi"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static BitmapFont ToBitmapFont(BasicFont font, BitmapFontType fontType, BitmapFontSdfConfig? sdfConfig, UInt16 dpi)
+    {
+      if (font == null)
+        throw new ArgumentNullException(nameof(font));
+
+      ImmutableArray<BitmapFontChar> chars = ToBitmapFontChars(font);
+      // There is no advanced kerning in this font type!
+      var kernings = ImmutableArray<BitmapFontKerning>.Empty;
+
+      UInt16 size = NumericCast.ToUInt16(font.Header.LineSpacingPx); // Use linespacing as we dont have the size
+      UInt16 lineHeightPx = NumericCast.ToUInt16(font.Header.LineSpacingPx);
+      UInt16 baseLinePx = NumericCast.ToUInt16(font.Header.BaseLinePx);
+      PxThicknessU16 paddingPx = new PxThicknessU16(); // Empty as we dont have that information
+
+      UInt16 sdfSpread = 0;
+      UInt16 sdfDesiredBaseLinePx = 0;
+      if (sdfConfig != null)
+      {
+        sdfSpread = sdfConfig.Spread;
+        sdfDesiredBaseLinePx = sdfConfig.DesiredBaseLinePx;
+      }
+
+      return new BitmapFont(font.Name, dpi, size, lineHeightPx, baseLinePx, paddingPx, "Virtual", fontType, sdfSpread,
+                            sdfDesiredBaseLinePx, chars, kernings);
+    }
+
+
+    private static ImmutableArray<BitmapFontChar> ToBitmapFontChars(BasicFont font)
+    {
+      int charCount = font.CountChars();
+      if (charCount <= 0)
+        return ImmutableArray<BitmapFontChar>.Empty;
+
+      int glyphKerningIndex = 0;
+
+      var builder = ImmutableArray.CreateBuilder<BitmapFontChar>(charCount);
+      foreach (var range in font.Ranges)
+      {
+        int glyphEndIndex = range.From + range.Length;
+        for (int glyphIndex = range.From; glyphIndex < glyphEndIndex; ++glyphIndex)
+        {
+          UInt32 id = NumericCast.ToUInt32(glyphIndex);
+          PxRectangle srcTextureRectPx = PxRectangle.Empty; // not available in a basic font (We need to load the bitmap image to get that)
+          PxPoint2 offsetPx = font.Kerning[glyphKerningIndex].OffsetPx;
+          UInt16 xAdvancePx = NumericCast.ToUInt16(font.Kerning[glyphKerningIndex].LayoutWidthPx);
+          builder.Add(new BitmapFontChar(id, srcTextureRectPx, offsetPx, xAdvancePx));
+          ++glyphKerningIndex;
+        }
+      }
+      return builder.MoveToImmutable();
+    }
 
     public static BasicFont ToBasicFont(BitmapFont font, ImmutableArray<PxThickness> trimInfo, string atlasFontFolder)
     {
@@ -156,8 +217,6 @@ namespace FslGraphics.Font.Converter
       }
       dstList.Add(newEntry);
     }
-
-    #endregion
   }
 }
 

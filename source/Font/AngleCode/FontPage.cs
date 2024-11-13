@@ -30,6 +30,7 @@
  ****************************************************************************************************************************************************/
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -60,13 +61,7 @@ namespace FslGraphics.Font.AngleCode
       File = file ?? throw new ArgumentNullException(nameof(file));
     }
 
-    public bool IsValid
-    {
-      get
-      {
-        return Id >= 0 && File != null;
-      }
-    }
+    public bool IsValid => Id >= 0 && File != null;
 
     public static bool operator ==(FontPage lhs, FontPage rhs)
     {
@@ -79,28 +74,16 @@ namespace FslGraphics.Font.AngleCode
     }
 
 
-    public override bool Equals(object obj)
-    {
-      return !(obj is FontPage) ? false : (this == (FontPage)obj);
-    }
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is FontPage objValue && (this == objValue);
 
 
-    public override int GetHashCode()
-    {
-      return Id.GetHashCode() ^ (File != null ? File.GetHashCode(StringComparison.Ordinal) : 0);
-    }
+    public override int GetHashCode() => Id.GetHashCode() ^ (File != null ? File.GetHashCode(StringComparison.Ordinal) : 0);
 
 
-    public bool Equals(FontPage other)
-    {
-      return this == other;
-    }
+    public bool Equals(FontPage other) => this == other;
 
 
-    public override string ToString()
-    {
-      return $"Id: {Id} File: {File}";
-    }
+    public override string ToString() => $"Id: {Id} File: {File}";
   }
 
 }

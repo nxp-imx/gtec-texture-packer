@@ -164,7 +164,7 @@ namespace TexturePacker
     }
 
 
-    private static Exception ValidateFlavors(ValidationEntry record)
+    private static Exception? ValidateFlavors(ValidationEntry record)
     {
       var dict = new Dictionary<string, List<int>>();
       for (int i = 0; i < record.Flavors.Count; ++i)
@@ -206,7 +206,7 @@ namespace TexturePacker
       var allImageEntriesDict = new Dictionary<string, ValidationEntry>();
       foreach (var flavor in command.Flavors)
       {
-        ReadonlyGeneratedAtlasInformation info = flavor.TryGetResult();
+        ReadonlyGeneratedAtlasInformation? info = flavor.TryGetResult();
         if (info == null)
           throw new Exception("AtlasFlavor has no result, this is a internal error");
 
@@ -216,7 +216,7 @@ namespace TexturePacker
         {
           string imageNameId = imageName.ToUpperInvariant();
           ImageMetaData metaData = ExtractMetaData(imageName, textureAtlasCache);
-          if (!allImageEntriesDict.TryGetValue(imageNameId, out ValidationEntry validationEntry))
+          if (!allImageEntriesDict.TryGetValue(imageNameId, out ValidationEntry? validationEntry))
           {
             validationEntry = new ValidationEntry(imageName, new ImageFlavorRecord(flavor.CreateAtlasCommand, metaData));
             allImageEntriesDict.Add(imageNameId, validationEntry);

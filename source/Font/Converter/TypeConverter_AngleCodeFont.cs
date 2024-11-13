@@ -45,9 +45,9 @@ namespace FslGraphics.Font.Converter
 {
   public sealed partial class TypeConverter
   {
-    #region AngleCodeFont to BitmapFont
+    // AngleCodeFont to BitmapFont
 
-    public static BitmapFont ToBitmapFont(AngleCodeFont font, BitmapFontType fontType, BitmapFontSdfConfig sdfConfig, UInt16 dpi)
+    public static BitmapFont ToBitmapFont(AngleCodeFont font, BitmapFontType fontType, BitmapFontSdfConfig? sdfConfig, UInt16 dpi)
     {
       if (font == null)
         throw new ArgumentNullException(nameof(font));
@@ -77,6 +77,7 @@ namespace FslGraphics.Font.Converter
                             sdfDesiredBaseLinePx, chars, kernings);
     }
 
+
     private static BitmapFontChar[] ToBitmapFontChars(List<FontChar> entries)
     {
       Debug.Assert(entries != null);
@@ -101,8 +102,6 @@ namespace FslGraphics.Font.Converter
       }
       return result;
     }
-
-    #endregion
   }
 }
 
