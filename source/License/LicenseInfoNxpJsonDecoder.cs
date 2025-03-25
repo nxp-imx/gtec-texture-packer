@@ -33,7 +33,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 
@@ -60,13 +59,12 @@ namespace TexturePacker.License
       }
     }
 
-    [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
     private static ComplexLicenseInfo Decode(string strJson)
     {
       if (strJson == null)
         throw new ArgumentNullException(nameof(strJson));
 
-      var resultDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(strJson);
+      var resultDict = JsonSerializer.Deserialize(strJson, LicenseJsonContext.Default.DictionaryStringJsonElement);
       if (resultDict == null)
       {
         throw new NotSupportedException("license is not in a supported format");

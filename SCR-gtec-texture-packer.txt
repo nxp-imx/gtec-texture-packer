@@ -1,9 +1,9 @@
 Package:                      gtec-texture-packer.git
-Version:                      1.4.0
+Version:                      1.5.0
 Outgoing License:             BSD-3-Clause 
 License File:                 License.md
 Package Category:             Graphics
 Type of Content:              source
 Description and comments:     Texture packer
-Release Location:             https://github.com/nxp-imx/gtec-texture-packer -b 1.4.0
+Release Location:             https://github.com/nxp-imx/gtec-texture-packer -b 1.5.0
 Origin:                       NXP (BSD-3-clause)

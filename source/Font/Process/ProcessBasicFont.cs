@@ -64,13 +64,15 @@ namespace FslGraphics.Font.Process
 
       UInt16 newLineSpacingPx = src.LineSpacingPx;
       UInt16 newBaseLinePx = src.BaseLinePx;
-      UInt16 sdfSpread = src.SdfSpread;
+      float sdfDistanceRange = src.SdfDistanceRange;
       UInt16 sdfDesiredBaseLinePx = src.SdfDesiredBaseLinePx;
 
       if (tweakConfig.SdfConfig != null)
       {
-        sdfSpread = tweakConfig.SdfConfig.Spread;
-        sdfDesiredBaseLinePx = tweakConfig.SdfConfig.DesiredBaseLinePx;
+        if(tweakConfig.SdfConfig.DistanceRange > 0.0f)
+          sdfDistanceRange = tweakConfig.SdfConfig.DistanceRange;
+        if(tweakConfig.SdfConfig.DesiredBaseLinePx > 0.0f)
+          sdfDesiredBaseLinePx = tweakConfig.SdfConfig.DesiredBaseLinePx;
       }
 
       // tweak the baseline
@@ -101,7 +103,7 @@ namespace FslGraphics.Font.Process
       BitmapFontChar[] chars = Proces(src.Chars, yAdjustPx);
 
       return new BitmapFont(src.Name, src.Dpi, src.Size, newLineSpacingPx, newBaseLinePx, src.PaddingPx, src.TextureName, src.FontType,
-                            sdfSpread, sdfDesiredBaseLinePx, chars, src.Kernings);
+                            sdfDistanceRange, sdfDesiredBaseLinePx, chars, src.Kernings);
     }
 
     private static BitmapFontChar FindMeasureChar(ImmutableArray<BitmapFontChar> src, UInt32 findCharId)

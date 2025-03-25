@@ -65,15 +65,15 @@ namespace FslGraphics.Font.Converter
       UInt16 baseLinePx = NumericCast.ToUInt16(font.Common.BaseLinePx);
       PxThicknessU16 paddingPx = PxTypeConverter.ToPxThicknessU16(font.Info.PaddingPx);
 
-      UInt16 sdfSpread = 0;
+      float sdfDistanceRange = 0.0f;
       UInt16 sdfDesiredBaseLinePx = 0;
       if (sdfConfig != null)
       {
-        sdfSpread = sdfConfig.Spread;
+        sdfDistanceRange = sdfConfig.DistanceRange;
         sdfDesiredBaseLinePx = sdfConfig.DesiredBaseLinePx;
       }
 
-      return new BitmapFont(font.Info.Face, dpi, size, lineHeightPx, baseLinePx, paddingPx, font.Pages[0].File, fontType, sdfSpread,
+      return new BitmapFont(font.Info.Face, dpi, size, lineHeightPx, baseLinePx, paddingPx, font.Pages[0].File, fontType, sdfDistanceRange,
                             sdfDesiredBaseLinePx, chars, kernings);
     }
 

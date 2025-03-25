@@ -35,6 +35,8 @@ namespace FslGraphics.Font.BF
   public enum BitmapFontType
   {
     Bitmap = 0,
-    SDF = 1
+    SDF = 1,
+    MSDF = 2,
+    MTSDF = 3
   }
 }

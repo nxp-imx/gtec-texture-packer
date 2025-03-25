@@ -22,20 +22,20 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ManaBattery.MB.RectangleBinPack" Version="0.0.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0">
+    <PackageReference Include="ManaBattery.MB.RectangleBinPack" Version="0.0.3" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NLog" Version="5.3.4" />
-    <PackageReference Include="Roslynator.Analyzers" Version="4.12.5">
+    <PackageReference Include="NLog" Version="5.4.0" />
+    <PackageReference Include="Roslynator.Analyzers" Version="4.13.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
-    <PackageReference Include="ManaBattery.MB.Base_Minimal" Version="0.0.3" />
-    <PackageReference Include="ManaBattery.MB.Graphics2_Minimal" Version="0.0.2" />
-    <PackageReference Include="ManaBattery.MB.Encoder.TextureAtlas.BTA" Version="0.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.5" />
+    <PackageReference Include="ManaBattery.MB.Base_Minimal" Version="0.0.5" />
+    <PackageReference Include="ManaBattery.MB.Graphics2_Minimal" Version="0.0.3" />
+    <PackageReference Include="ManaBattery.MB.Encoder.TextureAtlas.BTA" Version="0.0.5" />
   </ItemGroup>
 </Project>

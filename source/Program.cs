@@ -49,7 +49,7 @@ namespace TexturePacker
   static class Program
   {
     public const int VersionMajor = 1;
-    public const int VersionMinor = 4;
+    public const int VersionMinor = 5;
     public const int VersionPatch = 0;
 
     private const int PROGRAM_RESULT_SUCCESS = 0;

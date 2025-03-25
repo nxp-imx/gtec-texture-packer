@@ -99,7 +99,15 @@ namespace TexturePacker.Input
       {
         return BitmapFontType.SDF;
       }
-      throw new NotSupportedException($"Unsupported BitmapFontType '{value}', allowed values: {{'bitmap', 'sdf'}}");
+      if (value == "msdf")
+      {
+        return BitmapFontType.MSDF;
+      }
+      if (value == "mtsdf")
+      {
+        return BitmapFontType.MTSDF;
+      }
+      throw new NotSupportedException($"Unsupported BitmapFontType '{value}', allowed values: {{'bitmap', 'sdf', 'msdf', 'mtsdf'}}");
     }
 
     public static TransparencyMode ParseAsTransparencyMode(string value)

@@ -42,10 +42,11 @@ namespace TexturePacker.Atlas
     public readonly UInt32 CharId;
     public readonly int CharIndex;
 
+    // BitmapFontType.Sdf
     public AtlasBitmapFontElement(string sourcePath, SafeImage sourceImage, TrimInfo sourceTrimInfo, UInt16 dpi,
                                   BitmapFont font, UInt32 charId, int charIndex)
       : base(sourcePath, sourceImage, sourceTrimInfo, dpi,
-             (font != null && font.FontType == BitmapFontType.SDF) ? AtlasImageType.Sdf : AtlasImageType.Normal,
+             (font != null && font.FontType != BitmapFontType.Bitmap) ? AtlasImageType.Data : AtlasImageType.Normal,
              null, ImmutableArray<PxPoint2>.Empty)
     {
       Font = font ?? throw new ArgumentNullException(nameof(font));

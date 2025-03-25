@@ -81,9 +81,9 @@ namespace FslGraphics.Font.BF
     public readonly BitmapFontType FontType;
 
     /// <summary>
-    /// The sdf spread (not defined if == 0)
+    /// The sdf distance range (not defined if == 0)
     /// </summary>
-    public readonly UInt16 SdfSpread;
+    public readonly float SdfDistanceRange;
 
     /// <summary>
     /// The sdf scaled baseline size (not defined if == 0), can be used to calculate the desired scale factor of the sdf font
@@ -95,20 +95,20 @@ namespace FslGraphics.Font.BF
     public readonly ImmutableArray<BitmapFontKerning> Kernings;
 
     public BitmapFont(string name, UInt16 dpi, UInt16 size, UInt16 lineSpacingPx, UInt16 baseLinePx, PxThicknessU16 paddingPx, string textureName,
-                      BitmapFontType fontType, UInt16 sdfSpread, UInt16 sdfDesiredBaseLinePx, BitmapFontChar[] chars, BitmapFontKerning[] kernings)
-      : this(name, dpi, size, lineSpacingPx, baseLinePx, paddingPx, textureName, fontType, sdfSpread, sdfDesiredBaseLinePx, ImmutableArray.Create(chars), ImmutableArray.Create(kernings))
+                      BitmapFontType fontType, float sdfDistanceRange, UInt16 sdfDesiredBaseLinePx, BitmapFontChar[] chars, BitmapFontKerning[] kernings)
+      : this(name, dpi, size, lineSpacingPx, baseLinePx, paddingPx, textureName, fontType, sdfDistanceRange, sdfDesiredBaseLinePx, ImmutableArray.Create(chars), ImmutableArray.Create(kernings))
     {
     }
 
     public BitmapFont(string name, UInt16 dpi, UInt16 size, UInt16 lineSpacingPx, UInt16 baseLinePx, PxThicknessU16 paddingPx, string textureName,
-                      BitmapFontType fontType, UInt16 sdfSpread, UInt16 sdfDesiredBaseLinePx, BitmapFontChar[] chars,
+                      BitmapFontType fontType, float sdfDistanceRange, UInt16 sdfDesiredBaseLinePx, BitmapFontChar[] chars,
                       ImmutableArray<BitmapFontKerning> kernings)
-      : this(name, dpi, size, lineSpacingPx, baseLinePx, paddingPx, textureName, fontType, sdfSpread, sdfDesiredBaseLinePx, ImmutableArray.Create(chars), kernings)
+      : this(name, dpi, size, lineSpacingPx, baseLinePx, paddingPx, textureName, fontType, sdfDistanceRange, sdfDesiredBaseLinePx, ImmutableArray.Create(chars), kernings)
     {
     }
 
     public BitmapFont(string name, UInt16 dpi, UInt16 size, UInt16 lineSpacingPx, UInt16 baseLinePx, PxThicknessU16 paddingPx, string textureName,
-                      BitmapFontType fontType, UInt16 sdfSpread, UInt16 sdfDesiredBaseLinePx, ImmutableArray<BitmapFontChar> chars,
+                      BitmapFontType fontType, float sdfDistanceRange, UInt16 sdfDesiredBaseLinePx, ImmutableArray<BitmapFontChar> chars,
                       ImmutableArray<BitmapFontKerning> kernings)
     {
       Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -119,7 +119,7 @@ namespace FslGraphics.Font.BF
       PaddingPx = paddingPx;
       TextureName = textureName ?? throw new ArgumentNullException(nameof(textureName));
       FontType = fontType;
-      SdfSpread = sdfSpread;
+      SdfDistanceRange = sdfDistanceRange;
       SdfDesiredBaseLinePx = sdfDesiredBaseLinePx;
       Chars = chars;
       Kernings = kernings;

@@ -31,6 +31,7 @@
 
 using MB.Base;
 using MB.Base.Container;
+using MB.Base.MathEx;
 using MB.Base.MathEx.Pixel;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ namespace FslGraphics.Font.BF
   public class BitmapFontEncoder
   {
     public readonly string DefaultExtension = "nbf";
-    private const UInt32 CurrentVersion = 3;
+    private const UInt32 CurrentVersion = 4;
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "We want to keep this a object for future modifications")]
     public ByteList Encode(BitmapFont bitmapFont)
@@ -86,6 +87,9 @@ namespace FslGraphics.Font.BF
       Debug.Assert(dstBuffer != null);
       Debug.Assert(bitmapFont != null);
 
+      // Try to geenrate a useful value for the legacy field
+      UInt16 legacySdfSpread = MathUtil.RoundToUInt16(bitmapFont.SdfDistanceRange);
+
       dstBuffer.AddString(bitmapFont.Name);
       dstBuffer.AddEncodedUInt16(bitmapFont.Dpi);
       dstBuffer.AddEncodedUInt16(bitmapFont.Size);
@@ -95,8 +99,9 @@ namespace FslGraphics.Font.BF
       dstBuffer.AddEncodedUInt16(bitmapFont.PaddingPx.Top);           // new in V3
       dstBuffer.AddEncodedUInt16(bitmapFont.PaddingPx.Right);         // new in V3
       dstBuffer.AddEncodedUInt16(bitmapFont.PaddingPx.Bottom);        // new in V3
-      dstBuffer.AddEncodedUInt16(bitmapFont.SdfSpread);               // new in V3
+      dstBuffer.AddEncodedUInt16(legacySdfSpread);                    // new in V3  ** legacy/deprecated replaced by SdfDistanceRange in V4
       dstBuffer.AddEncodedUInt16(bitmapFont.SdfDesiredBaseLinePx);    // new in V3
+      dstBuffer.AddFloat(bitmapFont.SdfDistanceRange);                // new in V4
       dstBuffer.AddString(bitmapFont.TextureName);
       dstBuffer.AddEncodedUInt32((UInt32)bitmapFont.FontType);
 

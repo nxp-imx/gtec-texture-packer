@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2021 NXP
+ * Copyright 2025 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,12 @@
  *
  ****************************************************************************************************************************************************/
 
-namespace TexturePacker.Atlas
+using System.Text.Json.Serialization;
+
+namespace FslGraphics.Font.MsdfAtlas
 {
-  public enum AtlasImageType
+  [JsonSerializable(typeof(Root))]
+  public partial class RootJsonContext : JsonSerializerContext
   {
-    Normal,
-    /// <summary>
-    /// This is used for content like SDF, MSDF and MTSDF where we should not touch the color channels.
-    /// </summary>
-    Data
   }
 }

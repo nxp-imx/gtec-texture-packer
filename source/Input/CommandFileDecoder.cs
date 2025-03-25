@@ -29,6 +29,7 @@
  *
  ****************************************************************************************************************************************************/
 
+using FslGraphics.Font;
 using MB.Base;
 using MB.Base.MathEx.Pixel;
 using MB.Graphics2.Patch.Advanced;
@@ -150,7 +151,8 @@ namespace TexturePacker.Input
     private const string AddBitmapFontAttribute_LineSpacing = "LineSpacingPx";
     private const string AddBitmapFontAttribute_MeasureChar = "MeasureChar";
     private const string AddBitmapFontAttribute_MeasureHeight = "MeasureHeightPx";
-    private const string AddBitmapFontAttribute_SdfSpread = "SdfSpread";
+    private const string AddBitmapFontAttribute_SdfSpread = "SdfSpread";  // Deprecated, replaced by SdfDistanceRange
+    private const string AddBitmapFontAttribute_SdfDistanceRange = "SdfDistanceRange";
     private const string AddBitmapFontAttribute_SdfDesiredBaseLinePx = "SdfDesiredBaseLinePx";
     private const string AddBitmapFontAttribute_Name = "Name";
 
@@ -164,6 +166,7 @@ namespace TexturePacker.Input
       AddBitmapFontAttribute_MeasureChar,
       AddBitmapFontAttribute_MeasureHeight,
       AddBitmapFontAttribute_SdfSpread,
+      AddBitmapFontAttribute_SdfDistanceRange,
       AddBitmapFontAttribute_SdfDesiredBaseLinePx,
       AddBitmapFontAttribute_Name
     };
@@ -441,25 +444,45 @@ namespace TexturePacker.Input
       var fontType = XmlUtil.GetAttributeValueAsBitmapFontType(element, AddBitmapFontAttribute_Type, defaultConfig.FontType);
       var outputFontFormats = XmlUtil.GetAttributeValueAsOutputFontFormatHashSet(element, AddBitmapFontAttribute_OutputFontFormat, defaultConfig.OutputFormat);
 
+      var fontFileFormat = FontFileFormatUtil.GuessFontFormatFromFilename(path);
+
       UInt16 forcedBaseLinePx = XmlUtil.GetAttributeValueAsUInt16(element, AddBitmapFontAttribute_BaseLine, 0);
       UInt16 forcedLineSpacingPx = XmlUtil.GetAttributeValueAsUInt16(element, AddBitmapFontAttribute_LineSpacing, 0);
       UInt32 measureCharId = Convert.ToUInt32(XmlUtil.GetAttributeValueAsChar(element, AddBitmapFontAttribute_MeasureChar, (char)0));
       UInt16 measureHeightPx = XmlUtil.GetAttributeValueAsUInt16(element, AddBitmapFontAttribute_MeasureHeight, 0);
 
+
       BitmapFontSdfConfig? sdfConfig = null;
-      if (fontType == FslGraphics.Font.BF.BitmapFontType.SDF)
+      if (fontType == FslGraphics.Font.BF.BitmapFontType.SDF || fontType == FslGraphics.Font.BF.BitmapFontType.MSDF || fontType == FslGraphics.Font.BF.BitmapFontType.MTSDF)
       {
-        UInt16 sdfSpread;
-        if (!XmlUtil.TryGetAttributeValueAsUInt16(element, AddBitmapFontAttribute_SdfSpread, out sdfSpread))
-        {
-          throw new Exception(string.Format("SDF fonts must define a '{0}' attribute in the range >= 1u)", AddBitmapFontAttribute_SdfSpread));
-        }
+        float sdfDistanceRange = TryReadSdfDistanceRange(element, fontFileFormat);
+
         UInt16 sdfDesiredBaseLinePx = XmlUtil.GetAttributeValueAsUInt16(element, AddBitmapFontAttribute_SdfDesiredBaseLinePx, 0);
-        sdfConfig = new BitmapFontSdfConfig(sdfSpread, sdfDesiredBaseLinePx);
+        sdfConfig = new BitmapFontSdfConfig(sdfDistanceRange, sdfDesiredBaseLinePx);
       }
 
       var bitmapFontTweak = new BitmapFontTweakConfig(forcedBaseLinePx, forcedLineSpacingPx, measureCharId, measureHeightPx, sdfConfig);
       return new AtlasCommandAddBitmapFont(elementConfig, path, name, fontType, outputFontFormats, bitmapFontTweak);
+    }
+
+
+    private static float TryReadSdfDistanceRange(XElement element, FontFileFormat fontFileFormat)
+    {
+      if (XmlUtil.TryGetAttributeValueAsFloat(element, AddBitmapFontAttribute_SdfDistanceRange, out float distanceRange))
+      {
+        if (element.Attribute(AddBitmapFontAttribute_SdfSpread) != null)
+          throw new Exception($"The attributes {AddBitmapFontAttribute_SdfDistanceRange} and {AddBitmapFontAttribute_SdfSpread} are mutually exclusive");
+        return distanceRange;
+      }
+      if (XmlUtil.TryGetAttributeValueAsUInt16(element, AddBitmapFontAttribute_SdfSpread, out UInt16 sdfSpread))
+      {
+        return sdfSpread;
+      }
+      // The distance range is not supported in some formats so it must be manually specified when used
+      if(fontFileFormat == FontFileFormat.AngleCode || fontFileFormat == FontFileFormat.Basic)
+        throw new Exception($"SDF fonts must define a '{AddBitmapFontAttribute_SdfDistanceRange}' attribute in the range >= 1.0f). This value is also called pxrange");
+
+      return 0.0f;
     }
 
     private static AtlasCommand ParseAtlasCommandAddFolder(XElement element, AtlasElementConfig defaultElementConfig)

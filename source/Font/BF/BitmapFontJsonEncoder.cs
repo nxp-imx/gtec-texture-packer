@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2025 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,7 @@ namespace FslGraphics.Font.BF
 
       var jsonDict = ToJsonDict(bitmapFont);
 
-      var options = new JsonSerializerOptions();
-      options.WriteIndented = true;
-      var textResult = JsonSerializer.Serialize(jsonDict, options);
+      var textResult = JsonSerializer.Serialize(jsonDict, SimpleJsonContext.Default.SimpleRoot);
 
       var dstBytes = new ByteList(textResult.Length);
       dstBytes.AddPureString(textResult);
@@ -65,59 +63,55 @@ namespace FslGraphics.Font.BF
     }
 
 
-    private static Dictionary<string, object> ToJsonDict(BitmapFont bitmapFont)
+    private static SimpleRoot ToJsonDict(BitmapFont bitmapFont)
     {
-      var result = new Dictionary<string, object>();
-      result["Format"] = "BitmapFont";
-      result["Version"] = 1;
-      result["Name"] = bitmapFont.Name;
-      result["Size"] = bitmapFont.Size;
-      result["LineSpacingPx"] = bitmapFont.LineSpacingPx;
-      result["BaseLinePx"] = bitmapFont.BaseLinePx;
-      result["TextureName"] = bitmapFont.TextureName;
-      result["Chars"] = BitmapFontCharsToJson(bitmapFont.Chars);
-      result["Kernings"] = BitmapFontKerningsToJson(bitmapFont.Kernings);
+      var result = new SimpleRoot
+      {
+        Format = "BitmapFont",
+        Version = 1,
+        Name = bitmapFont.Name,
+        Size = bitmapFont.Size,
+        LineSpacingPx = bitmapFont.LineSpacingPx,
+        BaseLinePx = bitmapFont.BaseLinePx,
+        TextureName = bitmapFont.TextureName,
+        Chars = BitmapFontCharsToJson(bitmapFont.Chars),
+        Kernings = BitmapFontKerningsToJson(bitmapFont.Kernings)
+      };
       return result;
     }
 
 
-    private static List<Dictionary<string, object>> BitmapFontCharsToJson(ImmutableArray<BitmapFontChar> entries)
+    private static List<JsonBitmapFontChar> BitmapFontCharsToJson(ImmutableArray<BitmapFontChar> entries)
     {
-      var result = new List<Dictionary<string, object>>();
+      var result = new List<JsonBitmapFontChar>();
       foreach (var entry in entries)
         result.Add(BitmapFontCharToJson(entry));
       return result;
     }
 
-    private static Dictionary<string, object> BitmapFontCharToJson(BitmapFontChar entry)
+    private static JsonBitmapFontChar BitmapFontCharToJson(BitmapFontChar entry)
     {
-      var result = new Dictionary<string, object>();
-      result["Id"] = entry.Id;
-      result["X"] = entry.SrcTextureRectPx.X;
-      result["Y"] = entry.SrcTextureRectPx.Y;
-      result["Width"] = entry.SrcTextureRectPx.Width;
-      result["Height"] = entry.SrcTextureRectPx.Height;
-      result["XOffsetPx"] = entry.OffsetPx.X;
-      result["YOffsetPx"] = entry.OffsetPx.Y;
-      result["XAdvancePx"] = entry.XAdvancePx;
-      return result;
+      return new JsonBitmapFontChar(entry.Id,
+                                    entry.SrcTextureRectPx.X,
+                                    entry.SrcTextureRectPx.Y,
+                                    entry.SrcTextureRectPx.Width,
+                                    entry.SrcTextureRectPx.Height,
+                                    entry.OffsetPx.X,
+                                    entry.OffsetPx.Y,
+                                    entry.XAdvancePx);
     }
 
-    private static List<Dictionary<string, object>> BitmapFontKerningsToJson(ImmutableArray<BitmapFontKerning> entries)
+    private static List<JsonFontKerning> BitmapFontKerningsToJson(ImmutableArray<BitmapFontKerning> entries)
     {
-      var result = new List<Dictionary<string, object>>();
+      var result = new List<JsonFontKerning>();
       foreach (var entry in entries)
         result.Add(BitmapFontKerningToJson(entry));
       return result;
     }
 
-    private static Dictionary<string, object> BitmapFontKerningToJson(BitmapFontKerning entry)
+    private static JsonFontKerning BitmapFontKerningToJson(BitmapFontKerning entry)
     {
-      var result = new Dictionary<string, object>();
-      result["First"] = entry.First;
-      result["Second"] = entry.Second;
-      result["AmountPx"] = entry.AmountPx;
-      return result;
+      return new JsonFontKerning(entry.First, entry.Second, entry.AmountPx);
     }
   }
 }

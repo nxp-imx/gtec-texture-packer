@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2021 NXP
+ * Copyright 2025 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,17 @@
  *
  ****************************************************************************************************************************************************/
 
-namespace TexturePacker.Atlas
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+namespace FslGraphics.Font
 {
-  public enum AtlasImageType
+  public enum FontFileFormat
   {
-    Normal,
-    /// <summary>
-    /// This is used for content like SDF, MSDF and MTSDF where we should not touch the color channels.
-    /// </summary>
-    Data
+    AngleCode,
+    Basic,
+    MsdfAtlas,
+    BitmapFont
   }
 }
+
+//****************************************************************************************************************************************************

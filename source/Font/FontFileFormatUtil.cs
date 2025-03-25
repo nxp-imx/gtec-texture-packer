@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2021 NXP
+ * Copyright 2025 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,37 @@
  *
  ****************************************************************************************************************************************************/
 
-namespace TexturePacker.Atlas
+using FslGraphics.Font.Basic;
+using System;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+namespace FslGraphics.Font
 {
-  public enum AtlasImageType
+  static class FontFileFormatUtil
   {
-    Normal,
     /// <summary>
-    /// This is used for content like SDF, MSDF and MTSDF where we should not touch the color channels.
+    /// This is a really dumb but easy way to guess the font file format.
+    /// But its good enough for now.
     /// </summary>
-    Data
+    /// <returns></returns>
+    public static FontFileFormat GuessFontFormatFromFilename(string filename)
+    {
+      if (filename.EndsWith(".fnt", StringComparison.InvariantCultureIgnoreCase))
+      {
+        return FontFileFormat.AngleCode;
+      }
+      if (filename.EndsWith($".{BinaryFontBasicKerning.DefaultFileExtension}", StringComparison.InvariantCultureIgnoreCase))
+      {
+        return FontFileFormat.Basic;
+      }
+      if (filename.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
+      {
+        return FontFileFormat.MsdfAtlas;
+      }
+      throw new NotSupportedException($"Could not guess font file format for: {filename}");
+    }
   }
 }
+
+//****************************************************************************************************************************************************

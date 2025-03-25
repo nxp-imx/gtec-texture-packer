@@ -749,7 +749,61 @@ namespace TexturePacker
       }
       return foundSpans;
     }
+
+
+    public void CloneChannelRToA()
+    {
+      if (m_isDisposed)
+        throw new ObjectDisposedException(nameof(SafeImage));
+      if (m_image == null)
+        return;
+
+      var span = m_image.GetLegacyPixelSpan();
+      for (int i = 0; i < span.Length; ++i)
+      {
+        var color = span[i];
+        color.A = color.R;
+        span[i] = color;
+      }
+    }
+    public void FillChannelRGB(byte fillValue)
+    {
+      if (m_isDisposed)
+        throw new ObjectDisposedException(nameof(SafeImage));
+      if (m_image == null)
+        return;
+
+      var span = m_image.GetLegacyPixelSpan();
+      for (int i = 0; i < span.Length; ++i)
+      {
+        var color = span[i];
+        color.R = fillValue;
+        color.G = fillValue;
+        color.B = fillValue;
+        span[i] = color;
+      }
+    }
+
+    public void CopyRToAThenFillRGB(byte fillValue)
+    {
+      if (m_isDisposed)
+        throw new ObjectDisposedException(nameof(SafeImage));
+      if (m_image == null)
+        return;
+
+      var span = m_image.GetLegacyPixelSpan();
+      for (int i = 0; i < span.Length; ++i)
+      {
+        var color = span[i];
+        color.A = color.R;
+        color.R = fillValue;
+        color.G = fillValue;
+        color.B = fillValue;
+        span[i] = color;
+      }
+    }
   }
+
 
   internal static class LegacyImage
   {

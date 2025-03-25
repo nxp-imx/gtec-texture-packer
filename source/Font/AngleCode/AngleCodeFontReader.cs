@@ -288,7 +288,7 @@ namespace FslGraphics.Font.AngleCode
 
 
     /// <summary>
-    ///
+    /// Basic line parsing
     /// </summary>
     /// <param name="line"></param>
     /// <param name="lineHeader"></param>

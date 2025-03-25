@@ -1,5 +1,5 @@
 ﻿/****************************************************************************************************************************************************
- * Copyright 2020 NXP
+ * Copyright 2020, 2025 NXP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@
  *
  ****************************************************************************************************************************************************/
 
+using FslGraphics.Font;
 using FslGraphics.Font.AngleCode;
 using FslGraphics.Font.Basic;
 using FslGraphics.Font.BF;
+using FslGraphics.Font.MsdfAtlas;
 using FslGraphics.Font.Process;
 using MB.Base;
 using MB.Base.Container;
@@ -216,13 +218,14 @@ namespace TexturePacker
     private static Tuple<AtlasBitmapFontElement[], EmbeddedFontRecord> AddBitmapFont(ResolvedAtlasCommandAddBitmapFont cmd)
     {
       g_logger.Trace("AddBitmapFont");
-      if (cmd.FilePath.RelativeResolvedSourcePath.EndsWith(".fnt", StringComparison.InvariantCultureIgnoreCase))
+      switch(FontFileFormatUtil.GuessFontFormatFromFilename(cmd.FilePath.RelativeResolvedSourcePath))
       {
-        return AddAngleCodeFont(cmd);
-      }
-      if (cmd.FilePath.RelativeResolvedSourcePath.EndsWith($".{BinaryFontBasicKerning.DefaultFileExtension}", StringComparison.InvariantCultureIgnoreCase))
-      {
-        return AddBasicFont(cmd);
+        case FontFileFormat.AngleCode:
+          return AddAngleCodeFont(cmd);
+        case FontFileFormat.Basic:
+          return AddBasicFont(cmd);
+        case FontFileFormat.MsdfAtlas:
+          return AddMsdfAtlasBitmapFont(cmd);
       }
       throw new NotSupportedException($"Unsupported font format in file: {cmd.FilePath.RelativeResolvedSourcePath}");
     }
@@ -267,6 +270,61 @@ namespace TexturePacker
         return Tuple.Create(result, new EmbeddedFontRecord(cmd, bitmapFont));
       }
     }
+
+    private static Tuple<AtlasBitmapFontElement[], EmbeddedFontRecord> AddMsdfAtlasBitmapFont(ResolvedAtlasCommandAddBitmapFont cmd)
+    {
+      g_logger.Trace("- Loading msdf atlas font definition {0}", cmd.FilePath.AbsolutePath);
+
+      string fontName = Path.GetFileNameWithoutExtension(cmd.FilePath.AbsolutePath);
+
+      var config = cmd.ElementConfig;
+
+      var strFontFormat = File.ReadAllText(cmd.FilePath.AbsolutePath);
+      var fontInfo = MsdfAtlasFontReader.Decode(strFontFormat);
+      var bitmapFont = FslGraphics.Font.Converter.TypeConverter.ToBitmapFont(fontInfo, cmd.Type, cmd.TweakConfig.SdfConfig, config.DefaultDpi, fontName);
+      bitmapFont = FslGraphics.Font.Process.ProcessUtil.Tweak(bitmapFont, cmd.TweakConfig, new TraceInfo("AddBitmapFont", cmd.FilePath.RelativeResolvedSourcePath));
+
+      var fontDir = IOUtil.GetDirectoryName(cmd.FilePath.AbsolutePath);
+      var bitmapPath = IOUtil.Combine(fontDir, bitmapFont.TextureName);
+
+      g_logger.Trace("- Loading image {0}", bitmapPath);
+
+      SafeImage? dummyEmptyImage = null;
+      using (var fontImage = new SafeImage(Image.Load<Rgba32>(bitmapPath)))
+      {
+        switch (bitmapFont.FontType)
+        {
+          case BitmapFontType.Bitmap:
+          case BitmapFontType.SDF:
+            fontImage.CopyRToAThenFillRGB(255);
+            break;
+          default:
+            break;
+        }
+
+        var result = new AtlasBitmapFontElement[bitmapFont.Chars.Length];
+        for (int i = 0; i < bitmapFont.Chars.Length; ++i)
+        {
+          var fontChar = bitmapFont.Chars[i];
+          string charPath = IOUtil.Combine(cmd.RelativeFontAtlasPath, $"{fontChar.Id:X2}");
+
+          if (fontChar.SrcTextureRectPx.Size.Width > 0 && fontChar.SrcTextureRectPx.Height > 0)
+          {
+            var charImage = fontImage.CloneCrop(fontChar.SrcTextureRectPx);
+            var trimInfo = ProcessImageElement(ref charImage, config);
+            result[i] = new AtlasBitmapFontElement(charPath, charImage, trimInfo, config.DefaultDpi, bitmapFont, fontChar.Id, i);
+          }
+          else
+          {
+            if (dummyEmptyImage == null)
+              dummyEmptyImage = new SafeImage();
+            result[i] = new AtlasBitmapFontElement(charPath, dummyEmptyImage, new TrimInfo(), config.DefaultDpi, bitmapFont, fontChar.Id, i);
+          }
+        }
+        return Tuple.Create(result, new EmbeddedFontRecord(cmd, bitmapFont));
+      }
+    }
+
 
     private static Tuple<AtlasBitmapFontElement[], EmbeddedFontRecord> AddBasicFont(ResolvedAtlasCommandAddBitmapFont cmd)
     {
@@ -332,7 +390,7 @@ namespace TexturePacker
       // Finally we patch the bitmap font with the actual source rects
       var patchedChars = PatchBitmapFont(bitmapFont, result);
       var patchedBitmapFont = new BitmapFont(bitmapFont.Name, bitmapFont.Dpi, bitmapFont.Size, bitmapFont.LineSpacingPx, bitmapFont.BaseLinePx,
-                                             bitmapFont.PaddingPx, bitmapFont.TextureName, bitmapFont.FontType, bitmapFont.SdfSpread,
+                                             bitmapFont.PaddingPx, bitmapFont.TextureName, bitmapFont.FontType, bitmapFont.SdfDistanceRange,
                                              bitmapFont.SdfDesiredBaseLinePx, patchedChars, bitmapFont.Kernings);
       patchedBitmapFont = FslGraphics.Font.Process.ProcessUtil.Tweak(patchedBitmapFont, cmd.TweakConfig, new TraceInfo("AddBitmapFont", cmd.FilePath.RelativeResolvedSourcePath));
 
@@ -632,7 +690,7 @@ namespace TexturePacker
 
       if (filteredImages.Count > 0)
       {
-        DrawImages(packResult.Size, filteredImages, offsetPx, atlasImage, AtlasImageType.Sdf);
+        DrawImages(packResult.Size, filteredImages, offsetPx, atlasImage, AtlasImageType.Data);
       }
 
       return atlasImage;
@@ -1058,7 +1116,7 @@ namespace TexturePacker
         remappedChars[i] = record;
       }
       var bf = new BitmapFont(embeddedFont.Name, embeddedFont.Dpi, embeddedFont.Size, embeddedFont.LineSpacingPx, embeddedFont.BaseLinePx,
-                              embeddedFont.PaddingPx, atlasImageFilename, embeddedFont.FontType, embeddedFont.SdfSpread,
+                              embeddedFont.PaddingPx, atlasImageFilename, embeddedFont.FontType, embeddedFont.SdfDistanceRange,
                               embeddedFont.SdfDesiredBaseLinePx, remappedChars, embeddedFont.Kernings);
       return new RemappedFontRecord(bf, ImmutableArray.Create(trimInfo));
     }

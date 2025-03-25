@@ -41,21 +41,23 @@ namespace TexturePacker.Commands.Atlas
   public class BitmapFontSdfConfig
   {
     /// <summary>
-    /// The spread
+    /// The distance range aka pxrange in some programs (> 0.0f)
+    /// In older version this was a UInt16 called spread.
     /// </summary>
-    public readonly UInt16 Spread;
+    public readonly float DistanceRange;
+
     /// <summary>
     /// If this is zero then no scaling should is desired
     /// </summary>
     public readonly UInt16 DesiredBaseLinePx;
 
-    public BitmapFontSdfConfig(UInt16 spread, UInt16 desiredBaseLinePx)
+    public BitmapFontSdfConfig(float distanceRange, UInt16 desiredBaseLinePx)
     {
-      if (spread < 1)
+      if (distanceRange < 0.0f)
       {
-        throw new ArgumentException("Must be >= 1u", nameof(spread));
+        throw new ArgumentException("Must be >= 0.0", nameof(distanceRange));
       }
-      Spread = spread;
+      DistanceRange = distanceRange;
       DesiredBaseLinePx = desiredBaseLinePx;
     }
   }
